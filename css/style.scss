@@ -1,0 +1,151 @@
+$font: "Roboto", "Helvetica Neue", "Helvetica", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Arial", "sans-serif";
+
+body {
+  margin: 0;
+}
+
+body, input, button, textarea {
+  font-size: 16px;
+  font-family: $font;
+}
+
+%flex-column {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  box-sizing: border-box;
+  height: 100%;
+}
+
+#navbar {
+  width: 100%;
+  position: fixed;
+}
+
+.layout {
+  display: flex;
+  min-height: 90vh;
+  padding-top: 60px;
+}
+
+.login {
+  align-items: center;
+  flex-direction: column;
+  > h1 {
+    margin-top: 25vh;
+    margin-bottom: 1em;
+    font-weight: 200;
+  }
+  .login-box {
+    width: 25%;
+  }
+}
+
+.index {
+  main {
+    box-sizing: border-box;
+    width: 75%;
+    padding-left: 1em;
+  }
+  aside {
+    width: 25%;
+  }
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  height: 50px;
+  > * {
+    margin: 0 .4em;
+  }
+}
+
+.file-list {
+  font-size: 16px;
+  color: #222222;
+
+  > :first-child {
+    border-top: solid 1px #ddd;
+  }
+  .item {
+    display: flex;
+    align-items: center;
+    padding: 0 1em;
+    height: 50px;
+    border-bottom: solid 1px #ddd;
+    > * {
+      margin: 0 .4em;
+    }
+    .icon {
+      width: 40px;
+      height: 40px;
+    }
+    .filename {
+      width: 50%;
+      text-decoration: none;
+    }
+    .actions {
+      width: 20%;
+      font-size: 20px;
+      > * {
+        margin: 0 .2em;
+      }
+    }
+    .authority, .owner, .size {
+      width: 10%;
+      font-size: 14px;
+    }
+  }
+
+  .dir > .icon {
+    background-image: url("../img/icon-dir.png");
+  }
+  .file > .icon {
+    background-image: url("../img/icon-file.png");
+  }
+  .text > .icon {
+    background-image: url("../img/icon-text.png");
+  }
+}
+
+.dialog-background {
+  display: flex;
+  position: absolute;
+  width: 100vw;
+  height: 100vh;
+  left: 0;
+  top: 0;
+  z-index: 10;
+  align-items: center;
+  justify-content: center;
+
+  background: rgba(0, 0, 0, .5);
+  .dialog {
+    width: 50vw;
+    height: 60vh;
+    background: #fff;
+    overflow: hidden;
+    border-radius: 6px;
+    .title-box {
+      padding: .6em 1.6em;
+      box-sizing: border-box;
+      color: white;
+      font-size: 18px;
+      background: #0082f3;
+      > * {
+        display: inline-block;
+      }
+      .close-button {
+        float: right;
+        a {
+          color: #fff;
+        }
+      }
+    }
+
+    > * {
+      padding: 0 1.6em;
+    }
+  }
+}

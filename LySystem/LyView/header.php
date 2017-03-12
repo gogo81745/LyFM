@@ -1,35 +1,27 @@
-<?php header("content-Type: text/html; charset=utf-8"); ?>
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-cn">
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<title><?php $_LibTemplate->the_title();?></title>
-<link rel="stylesheet" type="text/css" href="<?php echo get_file_url('css/style.css')?>"/>
-<link rel="stylesheet" type="text/css" href="<?php echo get_file_url('css/colorbox.css')?>"/>
-<link rel="stylesheet" type="text/css" href="<?php echo get_file_url('css/uploadify.css')?>"/>
-<script type="text/javascript">
-var URL = '<?php echo WEB_URL?>';
-var FILE_URL = '<?php echo WEB_FILE_URL?>';
-var VERSION = '<?php echo VERSION?>';
-<?php if($_LibLogin->is_login() && $_LibTemplate->is_home()):?>
-var ROOT = '<?php echo str_replace("\\","/",dirname(WEB_PATH))?>';
-var NOW_PATH = ROOT;
-var _ORDER = {order:'asc',by:'name'};
-<?php endif;?>
-</script>
-<script type="text/javascript" src="<?php echo get_file_url('js/jquery-1.8.2.min.js')?>"></script>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>文件管理</title>
+    <link href="<?php echo get_file_url('css/bootstrap.min.css') ?>" rel="stylesheet">
+    <link rel="stylesheet" href="<?php echo get_file_url('css/material-design-iconic-font.min.css') ?>">
+    <link rel="stylesheet" href="<?php echo get_file_url('css/style.css') ?>">
+    <script src="<?php echo get_file_url('js/jquery-2.2.4.min.js') ?>"></script>
+
+
 </head>
 <body>
-<div id="container">
-<div id="header">
-	<div class="title">
-		<img src="<?php echo get_file_url('images/LyFM.png')?>" alt="LyFM" />
-		<!--h1><?php //get_config('title')?></h1-->
-	</div>
-	<div class="menu">
-<?php $_CORE->view('menu');?>
-	</div>
-	<div class="clear"></div>
-</div>
-<div id="warp">
 
+<nav id="navbar" class="navbar navbar-default">
+    <div class="container-fluid">
+        <div class="collapse navbar-collapse">
+            <ul class="nav navbar-nav">
+                <li><a href="#">文件</a></li>
+                <li><a href="<?= WEB_URL . 'API' ?>">API</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
