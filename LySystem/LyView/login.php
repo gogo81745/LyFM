@@ -2,7 +2,7 @@
 
     <script>
         $(function () {
-            fm.load_page('login')
+            fm.loadPage('login')
         });
     </script>
 

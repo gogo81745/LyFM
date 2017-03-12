@@ -1,18 +1,25 @@
 const fm = function () {
 
-    let fm = {};
-    let page = '';
-    let layout = $('.layout');
+    class Page {
 
-    fm.page = page;
-
-    fm.load_page = function (page) {
-        if (page == fm.page) {
-            return
+        constructor(layout) {
+            this.layout = layout;
         }
-        layout.children().remove();
-        layout.attr('class', 'layout');
-        if (page == 'login') {
+
+        render() {
+            let layout = this.layout;
+            layout.children().remove();
+            layout.attr('class', 'layout');
+        }
+    }
+
+    Page.Login = class Login extends Page {
+        render() {
+
+            super.render();
+
+            let layout = this.layout;
+
             layout.addClass('login');
             layout.append($(`
                 <h1 class="">登录</h1>
@@ -28,10 +35,53 @@ const fm = function () {
                 })
             });
         }
-        if (page == 'index') {
-            layout.addClass('login');
-        }
     };
+
+    class FileManager {
+
+        constructor() {
+            this.page = '';
+            this.path = '';
+            this.layout = $('.layout');
+        }
+
+        loadPage(page) {
+            if (page == this.page) {
+                return;
+            }
+            this.page = page;
+
+            if (page == 'login') {
+                new Page.Login(this.layout).render();
+            }
+            if (page == 'index') {
+                //TODO
+            }
+        }
+
+        loadPath(path) {
+            path = path || fm.path || Cookies.get('path');
+            if (!path) {
+                throw new Error('path 为空');
+            }
+            get('Api/file_list', {path: path}).then(data => {
+                //TODO
+            })
+        }
+    }
+
+    function get(url, data) {
+        return new Promise((resolve, reject) => {
+            $.ajax({
+                type: 'GET',
+                url: url,
+                data: data,
+                dataType: 'json',
+                success: resolve,
+                error: reject
+            });
+        });
+    }
 
     function post(url, data) {
         return new Promise((resolve, reject) => {
@@ -46,6 +96,6 @@ const fm = function () {
         });
     }
 
-    return fm;
+    return new FileManager();
 
 }();
