@@ -23,19 +23,28 @@ const fm = function () {
                     </span>
                 </div>`));
             $('.login-box button').click(function () {
-                $.post(
-                    'Login/login',
-                    {password: $('.login-box input').val()},
-                    function (data) {
-                        console.log(data)
-                    }
-                );
+                post('Login/login', {password: md5($('.login-box input').val())}).then(data => {
+                    //TODO
+                })
             });
         }
         if (page == 'index') {
             layout.addClass('login');
         }
     };
+
+    function post(url, data) {
+        return new Promise((resolve, reject) => {
+            $.ajax({
+                type: 'POST',
+                url: url,
+                data: data,
+                dataType: 'json',
+                success: resolve,
+                error: reject
+            });
+        });
+    }
 
     return fm;
 

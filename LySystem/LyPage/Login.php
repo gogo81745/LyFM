@@ -49,7 +49,7 @@ class Login
 
     public function login()
     {
-        $pwd = md5(get_core('LyPost')->get('password'));
+        $pwd = get_core('LyPost')->get('password');
         $this->lib->set_password($pwd, true);
         if ($this->lib->v()) {
             echo '{"status":"success","path":"' . WEB_PATH . '"}';
