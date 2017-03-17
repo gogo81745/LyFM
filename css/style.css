@@ -5,10 +5,6 @@ body, input, button, textarea {
   font-size: 16px;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Arial", "sans-serif"; }
 
-#navbar, .layout {
-  z-index: 1;
-  box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.16), 0 0 0 1px rgba(0, 0, 0, 0.08); }
-
 #navbar {
   width: 100%;
   position: fixed; }
@@ -41,6 +37,9 @@ body, input, button, textarea {
   height: 50px; }
   .toolbar > * {
     margin: 0 .4em; }
+  .toolbar .path {
+    font-size: 1.2em;
+    font-weight: 200; }
 
 .file-list {
   font-size: 16px;
@@ -55,17 +54,24 @@ body, input, button, textarea {
     border-bottom: solid 1px #ddd; }
     .file-list .item > * {
       margin: 0 .4em; }
+    .file-list .item input[type=checkbox] {
+      flex-shrink: 0; }
     .file-list .item .icon {
+      flex-shrink: 0;
       width: 40px;
       height: 40px; }
     .file-list .item .filename {
       width: 50%;
+      overflow: hidden;
       text-decoration: none; }
     .file-list .item .actions {
       width: 20%;
+      min-width: 160px;
       font-size: 20px; }
       .file-list .item .actions > * {
         margin: 0 .2em; }
+    .file-list .item .filename a, .file-list .item .actions a {
+      cursor: pointer; }
     .file-list .item .authority, .file-list .item .owner, .file-list .item .size {
       width: 10%;
       font-size: 14px; }

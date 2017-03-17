@@ -17,24 +17,12 @@ body, input, button, textarea {
   height: 100%;
 }
 
-%layer-1 {
-  z-index: 1;
-  box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.16), 0 0 0 1px rgba(0, 0, 0, 0.08);
-}
-
-%layer-2 {
-  z-index: 2;
-  box-shadow: 0 2px 2px 1px rgba(0, 0, 0, 0.24), 0 0 0 2px rgba(0, 0, 0, 0.12);
-}
-
 #navbar {
-  @extend %layer-1;
   width: 100%;
   position: fixed;
 }
 
 .layout {
-  @extend %layer-1;
   display: flex;
   min-height: 90vh;
   padding-top: 60px;
@@ -71,6 +59,10 @@ body, input, button, textarea {
   > * {
     margin: 0 .4em;
   }
+  .path {
+    font-size: 1.2em;
+    font-weight: 200;
+  }
 }
 
 .file-list {
@@ -89,20 +81,29 @@ body, input, button, textarea {
     > * {
       margin: 0 .4em;
     }
+    input[type=checkbox] {
+      flex-shrink: 0;
+    }
     .icon {
+      flex-shrink: 0;
       width: 40px;
       height: 40px;
     }
     .filename {
       width: 50%;
+      overflow: hidden;
       text-decoration: none;
     }
     .actions {
       width: 20%;
+      min-width: 160px;
       font-size: 20px;
       > * {
         margin: 0 .2em;
       }
+    }
+    .filename a, .actions a {
+      cursor: pointer;
     }
     .authority, .owner, .size {
       width: 10%;
