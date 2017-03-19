@@ -37,9 +37,16 @@ const fm = function () {
             });
         },
 
+        download: path => {
+            let inputs = `<input type="hidden" name="path" value="${path}" />`;
+            $(`<form action="Api/file_download" method="get" >${inputs}</form>`)
+                .appendTo('body').submit().remove();
+        },
+
         fileList: path => {
             return Api.get('Api/file_list', {path: path});
         },
+
 
         filterError: data => {
             if (data.error && data.error.length) {
@@ -89,7 +96,7 @@ const fm = function () {
                     fm.loadPage('index');
                 };
                 let handleError = error => {
-                    console.log(error); // TODO delete it
+                    console.error(error);
                     layout.find('.error').removeClass('hide');
                 };
                 Api.post('Login/login', {password: md5($('.login-box input').val())})
@@ -166,7 +173,7 @@ const fm = function () {
             this.type = Item.typeOf(data);
 
             this.perms = data.perms || '';
-            this.group = data.perms || '';
+            this.group = data.group || '';
             this.owner = data.owner || '';
 
             if (this.group || this.owner) {
@@ -174,8 +181,6 @@ const fm = function () {
             } else {
                 this.groupOwner = '';
             }
-
-            // TODO size actions
 
             let node = this.node = $(`
                 <div class="item ${this.type}">
@@ -190,7 +195,7 @@ const fm = function () {
                     </div>
                     <div class="authority">${this.perms}</div>
                     <div class="owner">${this.groupOwner}</div>
-                    <div class="size">17m</div>
+                    <div class="size"></div>
                 </div>
             `);
 
@@ -198,6 +203,23 @@ const fm = function () {
             nameNode.click(this.click.bind(this));
             nameNode.attr('title', this.path);
             nameNode.appendTo(node.find('.filename'));
+
+            if (data.size) {
+                let formatSize = size => {
+                    if (size == 0) {
+                        return 0;
+                    }
+                    if (size < 1024) {
+                        return `${size}B`;
+                    }
+                    if (size < 1024 * 1024) {
+                        return `${(size / 1024).toFixed(2)}k`;
+                    }
+                    return `${(size / 1024 / 1024).toFixed(2)}m`;
+                };
+
+                node.find('.size').text(formatSize(data.size));
+            }
 
             let actions = [];
             let actionsNode = node.find('.actions');
@@ -208,6 +230,7 @@ const fm = function () {
                 downloadNode.attr('title', this.name);
                 actions.push(downloadNode);
             }
+
 
             //TODO other actions
 
@@ -226,7 +249,10 @@ const fm = function () {
         }
 
         download() {
-            //TODO
+            if (!this.isDirectory()) {
+                Api.download(this.path);
+            }
+
         }
 
         static typeOf(data) {
