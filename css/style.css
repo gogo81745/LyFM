@@ -9,6 +9,11 @@ body, input, button, textarea {
   width: 100%;
   position: fixed; }
 
+#api_list {
+  padding: 90px; }
+  #api_list > h2 {
+    margin: 0; }
+
 .layout {
   display: flex;
   min-height: 90vh;
@@ -21,7 +26,9 @@ body, input, button, textarea {
     margin-top: 25vh;
     margin-bottom: 1em;
     font-weight: 200; }
-  .login .login-box {
+  .login .message {
+    margin-top: 1em; }
+  .login .login-box, .login .message {
     width: 25%; }
 
 .index main {
@@ -113,5 +120,13 @@ body, input, button, textarea {
           color: #fff; }
     .dialog-background .dialog > * {
       padding: 0 1.6em; }
+
+.message {
+  padding: .5em 1em;
+  font-size: 1.2em; }
+
+.message.error {
+  background: #ff312a;
+  color: white; }
 
 /*# sourceMappingURL=style.css.map */

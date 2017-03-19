@@ -37,9 +37,16 @@ const fm = function () {
             });
         },
 
-        fileList: (path) => {
+        fileList: path => {
             return Api.get('Api/file_list', {path: path});
         },
+
+        filterError: data => {
+            if (data.error && data.error.length) {
+                throw data;
+            }
+            return data;
+        }
     };
 
     let view;
@@ -67,17 +74,28 @@ const fm = function () {
 
             layout.addClass('login');
             layout.append($(`
-    <h1 class="">登录</h1>
-    <div class="login-box input-group">
-        <input type="text" name="password" class="form-control" placeholder="password">
-        <span class="input-group-btn">
-            <button class="btn btn-primary" type="button">登录</button>
-        </span>
-    </div>`));
+                <h1 class="">登录</h1>
+                <div class="login-box input-group">
+                    <input type="text" name="password" class="form-control" placeholder="password">
+                    <span class="input-group-btn">
+                        <button class="btn btn-primary" type="button">登录</button>
+                    </span>         
+                </div>
+                <div class="message error hide">登录失败!</div>             
+                `));
             $('.login-box button').click(function () {
-                Api.post('Login/login', {password: md5($('.login-box input').val())}).then(data => {
+                let handleSuccess = data => {
                     Cookies.set('path', data.path);
-                })
+                    fm.loadPage('index');
+                };
+                let handleError = error => {
+                    console.log(error); // TODO delete it
+                    layout.find('.error').removeClass('hide');
+                };
+                Api.post('Login/login', {password: md5($('.login-box input').val())})
+                    .then(Api.filterError)
+                    .then(handleSuccess)
+                    .catch(handleError);
             });
         }
     };
