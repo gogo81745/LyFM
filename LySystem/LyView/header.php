@@ -19,7 +19,7 @@
     <div class="container-fluid">
         <div class="collapse navbar-collapse">
             <ul class="nav navbar-nav">
-                <li><a href="#">文件</a></li>
+                <li><a href="<?= WEB_URL ?>">文件</a></li>
                 <li><a href="<?= WEB_URL . 'API' ?>">API</a></li>
             </ul>
         </div>
