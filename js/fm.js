@@ -47,6 +47,34 @@ const fm = function () {
             return Api.get('Api/file_list', {path: path});
         },
 
+        copy: (path, newPath, type) => {
+            return Api.get('Api/copy_file', {path, new_path: newPath, type});
+        },
+
+        move: (path, newPath, type) => {
+            return Api.get('Api/move_file', {path, new_path: newPath, type});
+        },
+
+        loadPath: path => {
+
+            let makeList = data => {
+                let res = [];
+                res.push({name: '..', path: data.parent});
+                res.push(...data.dir);
+                res.push(...data.file);
+                return res;
+            };
+            let buildItem = data => new View.Item(data);
+
+            return Api.fileList(path)
+                .then(makeList)
+                .then(F.map(buildItem));
+        },
+
+        dirTree: (path = '') => {
+            return Api.get('Api/dir_tree', {path});
+        },
+
 
         filterError: data => {
             if (data.error && data.error.length) {
@@ -118,8 +146,8 @@ const fm = function () {
             let nodes = this.nodes = $(`
                 <main>
                     <div class="toolbar">
-                        <button type="button" class="btn btn-primary">上传</button>
-                        <button type="button" class="btn btn-default">新文件夹</button>
+                        <button class="btn btn-primary">上传</button>
+                        <button class="btn btn-default">新文件夹</button>
                         <p class="path"></p>
                     </div>
                     <div class="files">
@@ -135,13 +163,24 @@ const fm = function () {
                 <div class="dialog-background hide">
                     <div class="dialog">
                         <div class="title-box">
-                            <div class="title">移动到</div>
-                            <div class="close-button"><a href=""><i class="zmdi zmdi-close"></i></a></div>
+                            <div class="title">选择文件夹</div>
+                            <div class="close-button"><a><i class="zmdi zmdi-close"></i></a></div>
+                        </div>
+                        <div class="directory-tree">
+                        
+                        </div>
+                        
+                        <div class="selected-line">
+                            <input type="text" class="selected-text form-control">
+                            <button class="cancel-button btn btn-default">取消</button>
+                            <button class=" confirm-button btn btn-primary ">确定</button>
                         </div>
                     </div>
                 </div>`);
             this.listNode = nodes.find('.file-list');
             layout.append(nodes);
+
+            this.directoryBox = new View.DirectoryBox(this);
 
             this.loadPath();
 
@@ -149,18 +188,22 @@ const fm = function () {
 
         loadPath(path) {
 
-            path = path || Cookies.get('path');
+            path = fm.path = path || Cookies.get('path');
 
             this.listNode.empty();
 
             let append = e => this.listNode.append(e.node);
 
-            fm.loadPath(path)
+            Api.loadPath(path)
                 .then(F.each(append));
 
             this.nodes.find('.toolbar .path').text(path);
 
             Cookies.set('path', path);
+        }
+
+        reload() {
+            this.loadPath(fm.path);
         }
     };
 
@@ -188,10 +231,8 @@ const fm = function () {
                     <div class="icon"></div>
                     <div class="filename"></div>
                     <div class="actions">
-                        <a href=""><i class="zmdi zmdi-copy"></i></a>
-                        <a href=""><i class="zmdi zmdi-redo"></i></a>
-                        <a href=""><i class="zmdi zmdi-format-size"></i></a>
-                        <a href=""><i class="zmdi zmdi-delete"></i></a>
+                        <a><i class="zmdi zmdi-format-size"></i></a>
+                        <a><i class="zmdi zmdi-delete"></i></a>
                     </div>
                     <div class="authority">${this.perms}</div>
                     <div class="owner">${this.groupOwner}</div>
@@ -231,8 +272,13 @@ const fm = function () {
                 actions.push(downloadNode);
             }
 
+            let copyNode = $('<a><i class="zmdi zmdi-copy"></i></a>');
+            copyNode.click(this.copy.bind(this));
+            actions.push(copyNode);
 
-            //TODO other actions
+            let moveNode = $('<a><i class="zmdi zmdi-redo"></i></a>');
+            moveNode.click(this.move.bind(this));
+            actions.push(moveNode);
 
             let appendActions = action => actionsNode.append(action);
             actions.forEach(appendActions);
@@ -252,7 +298,26 @@ const fm = function () {
             if (!this.isDirectory()) {
                 Api.download(this.path);
             }
+        }
 
+        copy() {
+            view.directoryBox.waitSelect().then(data => {
+                if (!data) {
+                    return;
+                }
+                Api.copy(this.path, data, this.isDirectory() ? 'dir' : 'file');
+                view.reload();
+            })
+        }
+
+        move() {
+            view.directoryBox.waitSelect().then(data => {
+                if (!data) {
+                    return;
+                }
+                Api.move(this.path, data, this.isDirectory() ? 'dir' : 'file');
+                view.reload();
+            })
         }
 
         static typeOf(data) {
@@ -264,6 +329,65 @@ const fm = function () {
 
     };
     View.Item.DIR = 'dir';
+
+    View.DirectoryBox = class DirectoryBox {
+
+        constructor(view) {
+            let root = this.root = view.nodes.filter('.dialog-background');
+            this.container = view.nodes.find('.directory-tree');
+            this.cancelButton = root.find('.cancel-button,.close-button');
+            this.confirmButton = root.find('.confirm-button');
+            this.selectedInput = root.find('.selected-text');
+            this.loadTree();
+            this.selectedNode = null;
+        }
+
+        loadTree(path) {
+            let loop = (name, inner) => {
+                let node = $(`<div class="dir-item hide-inner"><div class="dir-name">${name}</div><div class="dir-inner"></div></div>`);
+                node.children('.dir-name').click(() => {
+                    node.toggleClass('hide-inner');
+                    this.select(name, node);
+                });
+                let innerNode = node.find('.dir-inner');
+                let append = n => innerNode.append(n);
+
+                Object.entries(inner).map(c => loop(...c)).forEach(append);
+                return node;
+            };
+            let append = n => this.container.append(n);
+            let addNode = n => Object.entries(n).map(c => loop(...c)).forEach(append);
+            this.container.empty();
+            Api.dirTree(path).then(addNode);
+        }
+
+        select(name, node) {
+            if (this.selectedNode) {
+                this.selectedNode.removeClass('selected');
+            }
+            this.selectedNode = node;
+            this.selectedInput.val(name);
+            node.addClass('selected');
+        }
+
+        waitSelect() {
+            this.root.removeClass('hide');
+            return new Promise(resolve => {
+                let handle = value => {
+                    return () => {
+                        this.cancelButton.off('click');
+                        this.confirmButton.off('click')
+                        this.root.addClass('hide');
+                        resolve(value());
+                    }
+                };
+                this.cancelButton.click(handle(() => null));
+                this.confirmButton.click(handle(() => this.selectedInput.val()));
+            });
+        }
+
+
+    };
 
     class FileManager {
 
@@ -287,22 +411,6 @@ const fm = function () {
             }
         }
 
-        loadPath(path) {
-
-            let makeList = data => {
-                let res = [];
-                res.push({name: '..', path: data.parent});
-                res.push(...data.dir);
-                res.push(...data.file);
-                return res;
-            };
-            let buildItem = data => new View.Item(data);
-
-            return Api.fileList(path)
-                .then(makeList)
-                .then(F.map(buildItem));
-
-        }
 
     }
 

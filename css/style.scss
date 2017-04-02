@@ -134,7 +134,7 @@ body, input, button, textarea {
 
 .dialog-background {
   display: flex;
-  position: absolute;
+  position: fixed;
   width: 100vw;
   height: 100vh;
   left: 0;
@@ -145,6 +145,8 @@ body, input, button, textarea {
 
   background: rgba(0, 0, 0, .5);
   .dialog {
+    display: flex;
+    flex-direction: column;
     width: 50vw;
     height: 60vh;
     background: #fff;
@@ -164,6 +166,42 @@ body, input, button, textarea {
         a {
           color: #fff;
         }
+      }
+    }
+    .directory-tree {
+      height: 100%;
+      overflow: auto;
+      padding-top: .6em;
+      .dir-name {
+        margin: 0.1em 0;
+        padding-left: .6em;
+        font-size: 1.2em;
+        border-radius: 0.2em;
+      }
+      .dir-item.hide-inner {
+        overflow: hidden;
+        .dir-inner {
+          height: 0;
+        }
+      }
+      .dir-inner:empty {
+        height: 0;
+      }
+      .dir-item.selected {
+        > .dir-name {
+          background: #319fff;
+          color: white;
+        }
+      }
+      .dir-inner > .dir-item {
+        padding-left: 1.6em;
+      }
+    }
+    .selected-line {
+      padding: 1.2em 1em;
+      display: flex;
+      button {
+        height: 34px;
       }
     }
 
