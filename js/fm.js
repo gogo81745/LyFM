@@ -54,7 +54,12 @@ const fm = function () {
         move: (path, newPath, type) => {
             return Api.get('Api/move_file', {path, new_path: newPath, type});
         },
-
+        rename: (path, name) => {
+            return Api.get('Api/rename', {path, name});
+        },
+        delete: path => {
+            return Api.get('Api/delete', {path});
+        },
         loadPath: path => {
 
             let makeList = data => {
@@ -120,7 +125,8 @@ const fm = function () {
                 `));
             $('.login-box button').click(function () {
                 let handleSuccess = data => {
-                    Cookies.set('path', data.path);
+                    Cookies.set('root-path', data.path, {expires: 30});
+                    Cookies.set('path', data.path, {expires: 30});
                     fm.loadPage('index');
                 };
                 let handleError = error => {
@@ -160,7 +166,7 @@ const fm = function () {
                 <aside class="sidebar">
                 </aside>
                 
-                <div class="dialog-background hide">
+                <div id="directory-dialog" class="dialog-background hide">
                     <div class="dialog">
                         <div class="title-box">
                             <div class="title">选择文件夹</div>
@@ -170,17 +176,34 @@ const fm = function () {
                         
                         </div>
                         
-                        <div class="selected-line">
-                            <input type="text" class="selected-text form-control">
+                        <div class="action-line">
+                            <input type="text" class="form-control">
                             <button class="cancel-button btn btn-default">取消</button>
-                            <button class=" confirm-button btn btn-primary ">确定</button>
+                            <button class="confirm-button btn btn-primary ">确定</button>
                         </div>
                     </div>
-                </div>`);
+                </div>
+                
+                <div id="name-dialog" class="dialog-background hide">
+                    <div class="dialog">
+                        <div class="title-box">
+                            <div class="title">输入名称</div>
+                            <div class="close-button"><a><i class="zmdi zmdi-close"></i></a></div>
+                        </div>
+                        
+                        <div class="action-line">
+                            <input type="text" class="form-control">
+                            <button class="cancel-button btn btn-default">取消</button>
+                            <button class="confirm-button btn btn-primary ">确定</button>
+                        </div>
+                    </div>
+                </div>
+`);
             this.listNode = nodes.find('.file-list');
             layout.append(nodes);
 
-            this.directoryBox = new View.DirectoryBox(this);
+            this.directoryBox = new View.DirectoryBox(nodes.filter('#directory-dialog'));
+            this.nameBox = new View.NameBox(nodes.filter('#name-dialog'));
 
             this.loadPath();
 
@@ -188,7 +211,11 @@ const fm = function () {
 
         loadPath(path) {
 
-            path = fm.path = path || Cookies.get('path');
+            path = fm.path = path || Cookies.get('path') || Cookies.get('root-path');
+            if (!path) {
+                fm.loadPage('login');
+                return;
+            }
 
             this.listNode.empty();
 
@@ -199,7 +226,7 @@ const fm = function () {
 
             this.nodes.find('.toolbar .path').text(path);
 
-            Cookies.set('path', path);
+            Cookies.set('path', path, {expires: 30});
         }
 
         reload() {
@@ -230,10 +257,10 @@ const fm = function () {
                     <input type="checkbox">
                     <div class="icon"></div>
                     <div class="filename"></div>
+                    
                     <div class="actions">
-                        <a><i class="zmdi zmdi-format-size"></i></a>
-                        <a><i class="zmdi zmdi-delete"></i></a>
                     </div>
+                    
                     <div class="authority">${this.perms}</div>
                     <div class="owner">${this.groupOwner}</div>
                     <div class="size"></div>
@@ -245,9 +272,13 @@ const fm = function () {
             nameNode.attr('title', this.path);
             nameNode.appendTo(node.find('.filename'));
 
+            if (this.name === '.' || this.name === '..') {
+                return;
+            }
+
             if (data.size) {
                 let formatSize = size => {
-                    if (size == 0) {
+                    if (size === 0) {
                         return 0;
                     }
                     if (size < 1024) {
@@ -261,6 +292,7 @@ const fm = function () {
 
                 node.find('.size').text(formatSize(data.size));
             }
+
 
             let actions = [];
             let actionsNode = node.find('.actions');
@@ -280,6 +312,14 @@ const fm = function () {
             moveNode.click(this.move.bind(this));
             actions.push(moveNode);
 
+            let renameNode = $('<a><i class="zmdi zmdi-format-size"></i></a>');
+            renameNode.click(this.rename.bind(this));
+            actions.push(renameNode);
+
+            let deleteNode = $('<a><i class="zmdi zmdi-delete"></i></a>');
+            deleteNode.click(this.delete.bind(this));
+            actions.push(deleteNode);
+
             let appendActions = action => actionsNode.append(action);
             actions.forEach(appendActions);
         }
@@ -291,6 +331,8 @@ const fm = function () {
         click() {
             if (this.isDirectory()) {
                 view.loadPath(this.path);
+            } else {
+                this.download();
             }
         }
 
@@ -301,7 +343,7 @@ const fm = function () {
         }
 
         copy() {
-            view.directoryBox.waitSelect().then(data => {
+            view.directoryBox.input().then(data => {
                 if (!data) {
                     return;
                 }
@@ -311,7 +353,7 @@ const fm = function () {
         }
 
         move() {
-            view.directoryBox.waitSelect().then(data => {
+            view.directoryBox.input().then(data => {
                 if (!data) {
                     return;
                 }
@@ -320,24 +362,77 @@ const fm = function () {
             })
         }
 
+        rename() {
+            view.nameBox.input(this.name).then(data => {
+                if (!data) {
+                    return;
+                }
+                Api.rename(this.path, data);
+                view.reload();
+            })
+        }
+
+        delete() {
+            Api.delete(this.path);
+            view.reload();
+        }
+
         static typeOf(data) {
             if (!data['exten']) {
                 return View.Item.DIR;
             }
             //TODO
+            return View.Item.FILE;
         }
 
     };
     View.Item.DIR = 'dir';
+    View.Item.FILE = 'file';
 
-    View.DirectoryBox = class DirectoryBox {
+    View.DialogBox = class DialogBox {
 
-        constructor(view) {
-            let root = this.root = view.nodes.filter('.dialog-background');
-            this.container = view.nodes.find('.directory-tree');
+        constructor(node) {
+            let root = this.root = node;
             this.cancelButton = root.find('.cancel-button,.close-button');
             this.confirmButton = root.find('.confirm-button');
-            this.selectedInput = root.find('.selected-text');
+        }
+
+        show() {
+            this.root.removeClass('hide');
+        }
+
+        hide() {
+            this.root.addClass('hide');
+        }
+
+        handle(done, value) {
+            return () => {
+                this.cancelButton.off('click');
+                this.confirmButton.off('click');
+                this.hide();
+                done(value());
+            }
+        };
+
+        input(confirm, cancel) {
+            this.show();
+            return new Promise(resolve => {
+                cancel = cancel ? this.handle(resolve, cancel) : this.handle(resolve, () => null);
+                confirm = this.handle(resolve, confirm);
+                this.cancelButton.click(cancel);
+                this.confirmButton.click(confirm);
+            });
+        }
+
+    };
+
+    View.DirectoryBox = class DirectoryBox extends View.DialogBox {
+
+        constructor(node) {
+            super(node);
+            let root = node;
+            this.container = root.find('.directory-tree');
+            this.selectedInput = root.find('input[type=text]');
             this.loadTree();
             this.selectedNode = null;
         }
@@ -370,20 +465,22 @@ const fm = function () {
             node.addClass('selected');
         }
 
-        waitSelect() {
-            this.root.removeClass('hide');
-            return new Promise(resolve => {
-                let handle = value => {
-                    return () => {
-                        this.cancelButton.off('click');
-                        this.confirmButton.off('click')
-                        this.root.addClass('hide');
-                        resolve(value());
-                    }
-                };
-                this.cancelButton.click(handle(() => null));
-                this.confirmButton.click(handle(() => this.selectedInput.val()));
-            });
+        input() {
+            return super.input(() => this.selectedInput.val());
+        }
+
+    };
+
+    View.NameBox = class NameBox extends View.DialogBox {
+
+        constructor(node) {
+            super(node);
+            this.inputNode = node.find('input[type=text]');
+        }
+
+        input(value) {
+            this.inputNode.val(value);
+            return super.input(() => this.inputNode.val());
         }
 
 
@@ -398,15 +495,15 @@ const fm = function () {
         }
 
         loadPage(page) {
-            if (page == this.page) {
+            if (page === this.page) {
                 return;
             }
             this.page = page;
 
-            if (page == 'login') {
+            if (page === 'login') {
                 (view = new View.Login(this.layout)).render();
             }
-            if (page == 'index') {
+            if (page === 'index') {
                 (view = new View.List(this.layout)).render();
             }
         }

@@ -140,10 +140,10 @@ body, input, button, textarea {
         color: white; }
       .dialog-background .dialog .directory-tree .dir-inner > .dir-item {
         padding-left: 1.6em; }
-    .dialog-background .dialog .selected-line {
+    .dialog-background .dialog .action-line {
       padding: 1.2em 1em;
       display: flex; }
-      .dialog-background .dialog .selected-line button {
+      .dialog-background .dialog .action-line button {
         height: 34px; }
     .dialog-background .dialog > * {
       padding: 0 1.6em; }
