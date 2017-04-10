@@ -115,12 +115,12 @@ const fm = function () {
             layout.addClass('login');
             layout.append($(`
                 <h1 class="">登录</h1>
-                <div class="login-box input-group">
+                <form onsubmit="false" class="login-box input-group">
                     <input type="text" name="password" class="form-control" placeholder="password">
                     <span class="input-group-btn">
                         <button class="btn btn-primary" type="button">登录</button>
                     </span>         
-                </div>
+                </form>
                 <div class="message error hide">登录失败!</div>             
                 `));
             $('.login-box button').click(function () {
@@ -166,44 +166,31 @@ const fm = function () {
                 <aside class="sidebar">
                 </aside>
                 
-                <div id="directory-dialog" class="dialog-background hide">
-                    <div class="dialog">
-                        <div class="title-box">
-                            <div class="title">选择文件夹</div>
-                            <div class="close-button"><a><i class="zmdi zmdi-close"></i></a></div>
-                        </div>
-                        <div class="directory-tree">
-                        
-                        </div>
-                        
-                        <div class="action-line">
-                            <input type="text" class="form-control">
-                            <button class="cancel-button btn btn-default">取消</button>
-                            <button class="confirm-button btn btn-primary ">确定</button>
-                        </div>
-                    </div>
-                </div>
                 
-                <div id="name-dialog" class="dialog-background hide">
+                <div id="upload-dialog" class="dialog-background hide">
                     <div class="dialog">
                         <div class="title-box">
-                            <div class="title">输入名称</div>
+                            <div class="title">上传文件</div>
                             <div class="close-button"><a><i class="zmdi zmdi-close"></i></a></div>
                         </div>
                         
+                        <div class="upload-list">
+                        
+                        </div>
+                        
                         <div class="action-line">
-                            <input type="text" class="form-control">
                             <button class="cancel-button btn btn-default">取消</button>
-                            <button class="confirm-button btn btn-primary ">确定</button>
+                            <button class="confirm-button btn btn-primary ">上传</button>
                         </div>
                     </div>
                 </div>
+                <div class="dialogs"></div>
 `);
             this.listNode = nodes.find('.file-list');
             layout.append(nodes);
 
-            this.directoryBox = new View.DirectoryBox(nodes.filter('#directory-dialog'));
-            this.nameBox = new View.NameBox(nodes.filter('#name-dialog'));
+            this.directoryBox = new View.DirectoryBox(nodes.filter('.dialogs'));
+            this.nameBox = new View.NameBox(nodes.filter('.dialogs'));
 
             this.loadPath();
 
@@ -364,6 +351,7 @@ const fm = function () {
 
         rename() {
             view.nameBox.input(this.name).then(data => {
+                console.log(data); // TODO delete it
                 if (!data) {
                     return;
                 }
@@ -391,10 +379,10 @@ const fm = function () {
 
     View.DialogBox = class DialogBox {
 
-        constructor(node) {
-            let root = this.root = node;
-            this.cancelButton = root.find('.cancel-button,.close-button');
-            this.confirmButton = root.find('.confirm-button');
+        constructor() {
+            this.root = null;
+            this.cancelButton = null;
+            this.confirmButton = null;
         }
 
         show() {
@@ -429,8 +417,28 @@ const fm = function () {
     View.DirectoryBox = class DirectoryBox extends View.DialogBox {
 
         constructor(node) {
-            super(node);
-            let root = node;
+            super();
+            let root = this.root = $(`
+                <div id="directory-dialog" class="dialog-background hide">
+                    <div class="dialog">
+                        <div class="title-box">
+                            <div class="title">选择文件夹</div>
+                            <div class="close-button"><a><i class="zmdi zmdi-close"></i></a></div>
+                        </div>
+                        <div class="directory-tree">
+                        
+                        </div>
+                        
+                        <div class="action-line">
+                            <input type="text" class="form-control">
+                            <button class="cancel-button btn btn-default">取消</button>
+                            <button class="confirm-button btn btn-primary ">确定</button>
+                        </div>
+                    </div>
+                </div>`);
+            node.append(root);
+            this.cancelButton = root.find('.cancel-button,.close-button');
+            this.confirmButton = root.find('.confirm-button');
             this.container = root.find('.directory-tree');
             this.selectedInput = root.find('input[type=text]');
             this.loadTree();
@@ -474,8 +482,27 @@ const fm = function () {
     View.NameBox = class NameBox extends View.DialogBox {
 
         constructor(node) {
-            super(node);
-            this.inputNode = node.find('input[type=text]');
+            super();
+            let root = this.root = $(`
+                <div id="name-dialog" class="dialog-background hide">
+                    <div class="dialog">
+                        <div class="title-box">
+                            <div class="title">输入名称</div>
+                            <div class="close-button"><a><i class="zmdi zmdi-close"></i></a></div>
+                        </div>
+        
+                        <div class="action-line">
+                            <input type="text" class="form-control">
+                            <button class="cancel-button btn btn-default">取消</button>
+                            <button class="confirm-button btn btn-primary ">确定</button>
+                        </div>
+                    </div>
+                </div>`);
+            node.append(root);
+            this.cancelButton = root.find('.cancel-button,.close-button');
+            this.confirmButton = root.find('.confirm-button');
+
+            this.inputNode = root.find('input[type=text]');
         }
 
         input(value) {

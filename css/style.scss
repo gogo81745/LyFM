@@ -54,11 +54,25 @@ body, input, button, textarea {
 .index {
   main {
     box-sizing: border-box;
-    width: 75%;
     padding-left: 1em;
+    width: 75%;
+
   }
   aside {
     width: 25%;
+  }
+
+}
+
+@media (max-width: 800px) {
+  .index {
+    flex-direction: column;
+    main {
+      width: 100%;
+    }
+    aside {
+      width: 100%;
+    }
   }
 }
 
@@ -112,6 +126,15 @@ body, input, button, textarea {
         margin: 0 .2em;
       }
     }
+    @media (max-width: 800px) {
+      .filename {
+        width: 30%;
+      }
+      .actions {
+        min-width: 120px;
+      }
+    }
+
     .filename a, .actions a {
       cursor: pointer;
     }
@@ -168,35 +191,6 @@ body, input, button, textarea {
         }
       }
     }
-    .directory-tree {
-      height: 100%;
-      overflow: auto;
-      padding-top: .6em;
-      .dir-name {
-        margin: 0.1em 0;
-        padding-left: .6em;
-        font-size: 1.2em;
-        border-radius: 0.2em;
-      }
-      .dir-item.hide-inner {
-        overflow: hidden;
-        .dir-inner {
-          height: 0;
-        }
-      }
-      .dir-inner:empty {
-        height: 0;
-      }
-      .dir-item.selected {
-        > .dir-name {
-          background: #319fff;
-          color: white;
-        }
-      }
-      .dir-inner > .dir-item {
-        padding-left: 1.6em;
-      }
-    }
     .action-line {
       padding: 1.2em 1em;
       display: flex;
@@ -208,6 +202,36 @@ body, input, button, textarea {
     > * {
       padding: 0 1.6em;
     }
+  }
+}
+
+.directory-tree {
+  height: 100%;
+  overflow: auto;
+  padding-top: .6em;
+  .dir-name {
+    margin: 0.1em 0;
+    padding-left: .6em;
+    font-size: 1.2em;
+    border-radius: 0.2em;
+  }
+  .dir-item.hide-inner {
+    overflow: hidden;
+    .dir-inner {
+      height: 0;
+    }
+  }
+  .dir-inner:empty {
+    height: 0;
+  }
+  .dir-item.selected {
+    > .dir-name {
+      background: #319fff;
+      color: white;
+    }
+  }
+  .dir-inner > .dir-item {
+    padding-left: 1.6em;
   }
 }
 

@@ -33,11 +33,18 @@ body, input, button, textarea {
 
 .index main {
   box-sizing: border-box;
-  width: 75%;
-  padding-left: 1em; }
+  padding-left: 1em;
+  width: 75%; }
 .index aside {
   width: 25%; }
 
+@media (max-width: 800px) {
+  .index {
+    flex-direction: column; }
+    .index main {
+      width: 100%; }
+    .index aside {
+      width: 100%; } }
 .toolbar {
   display: flex;
   align-items: center;
@@ -77,6 +84,11 @@ body, input, button, textarea {
       font-size: 20px; }
       .file-list .item .actions > * {
         margin: 0 .2em; }
+    @media (max-width: 800px) {
+      .file-list .item .filename {
+        width: 30%; }
+      .file-list .item .actions {
+        min-width: 120px; } }
     .file-list .item .filename a, .file-list .item .actions a {
       cursor: pointer; }
     .file-list .item .authority, .file-list .item .owner, .file-list .item .size {
@@ -120,26 +132,6 @@ body, input, button, textarea {
         float: right; }
         .dialog-background .dialog .title-box .close-button a {
           color: #fff; }
-    .dialog-background .dialog .directory-tree {
-      height: 100%;
-      overflow: auto;
-      padding-top: .6em; }
-      .dialog-background .dialog .directory-tree .dir-name {
-        margin: 0.1em 0;
-        padding-left: .6em;
-        font-size: 1.2em;
-        border-radius: 0.2em; }
-      .dialog-background .dialog .directory-tree .dir-item.hide-inner {
-        overflow: hidden; }
-        .dialog-background .dialog .directory-tree .dir-item.hide-inner .dir-inner {
-          height: 0; }
-      .dialog-background .dialog .directory-tree .dir-inner:empty {
-        height: 0; }
-      .dialog-background .dialog .directory-tree .dir-item.selected > .dir-name {
-        background: #319fff;
-        color: white; }
-      .dialog-background .dialog .directory-tree .dir-inner > .dir-item {
-        padding-left: 1.6em; }
     .dialog-background .dialog .action-line {
       padding: 1.2em 1em;
       display: flex; }
@@ -147,6 +139,27 @@ body, input, button, textarea {
         height: 34px; }
     .dialog-background .dialog > * {
       padding: 0 1.6em; }
+
+.directory-tree {
+  height: 100%;
+  overflow: auto;
+  padding-top: .6em; }
+  .directory-tree .dir-name {
+    margin: 0.1em 0;
+    padding-left: .6em;
+    font-size: 1.2em;
+    border-radius: 0.2em; }
+  .directory-tree .dir-item.hide-inner {
+    overflow: hidden; }
+    .directory-tree .dir-item.hide-inner .dir-inner {
+      height: 0; }
+  .directory-tree .dir-inner:empty {
+    height: 0; }
+  .directory-tree .dir-item.selected > .dir-name {
+    background: #319fff;
+    color: white; }
+  .directory-tree .dir-inner > .dir-item {
+    padding-left: 1.6em; }
 
 .message {
   padding: .5em 1em;
