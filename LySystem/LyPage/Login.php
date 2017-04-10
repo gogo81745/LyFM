@@ -54,7 +54,7 @@ class Login
         if ($this->lib->v()) {
             echo '{"status":"success","path":"' . WEB_PATH . '"}';
         } else {
-            echo '{"status":"failed","error":["login failed"]}';
+            echo '{"status":"failed","error":"login failed"}';
         }
 
     }

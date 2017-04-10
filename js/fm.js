@@ -60,6 +60,25 @@ const fm = function () {
         delete: path => {
             return Api.get('Api/delete', {path});
         },
+
+        upload: (path, file) => {
+            let formData = new FormData();
+            formData.append('path', path);
+            formData.append('Filedata', file);
+            return new Promise((resolve, reject) => {
+                $.ajax({
+                    url: 'Api/upload_file',
+                    type: 'POST',
+                    data: formData,
+                    cache: false,
+                    processData: false,
+                    contentType: false,
+                    dataType: 'json',
+                    success: resolve,
+                    error: reject
+                });
+            });
+        },
         loadPath: path => {
 
             let makeList = data => {
@@ -80,9 +99,8 @@ const fm = function () {
             return Api.get('Api/dir_tree', {path});
         },
 
-
         filterError: data => {
-            if (data.error && data.error.length) {
+            if (!data.status || data.error) {
                 throw data;
             }
             return data;
@@ -152,7 +170,7 @@ const fm = function () {
             let nodes = this.nodes = $(`
                 <main>
                     <div class="toolbar">
-                        <button class="btn btn-primary">上传</button>
+                        <button class="btn btn-primary upload">上传</button>
                         <button class="btn btn-default">新文件夹</button>
                         <p class="path"></p>
                     </div>
@@ -167,23 +185,6 @@ const fm = function () {
                 </aside>
                 
                 
-                <div id="upload-dialog" class="dialog-background hide">
-                    <div class="dialog">
-                        <div class="title-box">
-                            <div class="title">上传文件</div>
-                            <div class="close-button"><a><i class="zmdi zmdi-close"></i></a></div>
-                        </div>
-                        
-                        <div class="upload-list">
-                        
-                        </div>
-                        
-                        <div class="action-line">
-                            <button class="cancel-button btn btn-default">取消</button>
-                            <button class="confirm-button btn btn-primary ">上传</button>
-                        </div>
-                    </div>
-                </div>
                 <div class="dialogs"></div>
 `);
             this.listNode = nodes.find('.file-list');
@@ -191,6 +192,8 @@ const fm = function () {
 
             this.directoryBox = new View.DirectoryBox(nodes.filter('.dialogs'));
             this.nameBox = new View.NameBox(nodes.filter('.dialogs'));
+            this.uploadBox = new View.UploadBox(nodes.filter('.dialogs'));
+            nodes.filter('main').find('.upload').click(this.uploadBox.show.bind(this.uploadBox));
 
             this.loadPath();
 
@@ -508,6 +511,94 @@ const fm = function () {
         input(value) {
             this.inputNode.val(value);
             return super.input(() => this.inputNode.val());
+        }
+
+
+    };
+
+    View.UploadBox = class UploadBox extends View.DialogBox {
+
+        constructor(node) {
+            super();
+            let root = this.root = $(`
+                <div id="upload-dialog" class="dialog-background hide">
+                    <div class="dialog">
+                        <div class="title-box">
+                            <div class="title">上传文件</div>
+                            <div class="close-button"><a><i class="zmdi zmdi-close"></i></a></div>
+                        </div>
+                        
+                        <input class="btn btn-success" type="file" name="files[]" multiple>
+                        
+                        <div class="upload-list"></div>
+                        
+                        <div class="action-line">
+                            <button class="upload-button btn btn-success">上传</button>
+                            <button class="confirm-button btn btn-primary ">确定</button>
+                        </div>
+                    </div>
+                </div>`);
+            node.append(root);
+            root.find('.close-button,.confirm-button').click(this.hide.bind(this));
+
+            root.find('.upload-button').click(this.upload.bind(this));
+
+            this.uploadNode = node.find('input[type=file]');
+            this.listNode = node.find('.upload-list');
+            this.list = [];
+
+            this.uploadNode.on('change', () => {
+                for (let f of this.uploadNode[0].files) {
+                    this.list.push({file: f});
+                }
+                this.update();
+            });
+
+        }
+
+        upload() {
+            let list = this.list;
+            for (let o of list) {
+                if (o.node.hasClass('success')) {
+                    continue;
+                }
+                let handleSuccess = data => {
+                    o.node.find('.upload-status').addClass('success');
+                    o.node.find('.upload-status').text('上传成功');
+                    view.reload();
+                };
+                let handleFailed = data => {
+                    o.node.find('.upload-status').addClass('failed');
+                    o.node.find('.upload-status').text(data.error);
+                };
+
+                Api.upload(fm.path, o.file)
+                    .then(Api.filterError)
+                    .then(handleSuccess)
+                    .catch(handleFailed);
+            }
+        }
+
+        update() {
+            this.listNode.children().remove();
+            let list = this.list;
+            for (let o of list) {
+                let f = o.file;
+                let node = o.node = $(`
+                    <div class="upload-item">
+                        <span class="upload-name">${f.name}</span>
+                        <span class="upload-status"></span>
+                        <div class="close-button"><a><i class="zmdi zmdi-close"></i></a></div>
+                    </div>`);
+                node.find('.close-button').click(() => {
+                    list.splice(list.indexOf(f), 1);
+                    this.update();
+                });
+                this.listNode.append(node);
+            }
+        }
+
+        input(value) {
         }
 
 

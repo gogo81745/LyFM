@@ -134,7 +134,8 @@ body, input, button, textarea {
           color: #fff; }
     .dialog-background .dialog .action-line {
       padding: 1.2em 1em;
-      display: flex; }
+      display: flex;
+      justify-content: flex-end; }
       .dialog-background .dialog .action-line button {
         height: 34px; }
     .dialog-background .dialog > * {
@@ -160,6 +161,22 @@ body, input, button, textarea {
     color: white; }
   .directory-tree .dir-inner > .dir-item {
     padding-left: 1.6em; }
+
+#upload-dialog .upload-list {
+  height: 100%;
+  overflow: auto; }
+  #upload-dialog .upload-list .upload-item {
+    display: flex;
+    justify-content: space-between;
+    line-height: 1.6em; }
+    #upload-dialog .upload-list .upload-item .upload-name {
+      width: 60%;
+      white-space: nowrap;
+      overflow: hidden; }
+    #upload-dialog .upload-list .upload-item .upload-status.success {
+      color: #4cae4c; }
+    #upload-dialog .upload-list .upload-item .upload-status.failed {
+      color: #ff312a; }
 
 .message {
   padding: .5em 1em;

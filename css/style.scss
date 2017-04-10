@@ -194,6 +194,7 @@ body, input, button, textarea {
     .action-line {
       padding: 1.2em 1em;
       display: flex;
+      justify-content: flex-end;
       button {
         height: 34px;
       }
@@ -232,6 +233,29 @@ body, input, button, textarea {
   }
   .dir-inner > .dir-item {
     padding-left: 1.6em;
+  }
+}
+
+#upload-dialog {
+  .upload-list {
+    height: 100%;
+    overflow: auto;
+    .upload-item {
+      display: flex;
+      justify-content: space-between;
+      line-height: 1.6em;
+      .upload-name {
+        width: 60%;
+        white-space: nowrap;
+        overflow: hidden;
+      }
+      .upload-status.success {
+        color: #4cae4c;
+      }
+      .upload-status.failed {
+        color: #ff312a;
+      }
+    }
   }
 }
 
