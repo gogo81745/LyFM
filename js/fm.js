@@ -99,6 +99,10 @@ const fm = function () {
             return Api.get('Api/dir_tree', {path});
         },
 
+        newFolder: (path, name) => {
+            return Api.get('Api/mkdir', {path, name});
+        },
+
         filterError: data => {
             if (!data.status || data.error) {
                 throw data;
@@ -171,7 +175,7 @@ const fm = function () {
                 <main>
                     <div class="toolbar">
                         <button class="btn btn-primary upload">上传</button>
-                        <button class="btn btn-default">新文件夹</button>
+                        <button class="btn btn-default new-folder">新文件夹</button>
                         <p class="path"></p>
                     </div>
                     <div class="files">
@@ -186,14 +190,25 @@ const fm = function () {
                 
                 
                 <div class="dialogs"></div>
-`);
-            this.listNode = nodes.find('.file-list');
+            `);
+            this.listNode = nodes.filter('main').find('.file-list');
             layout.append(nodes);
 
-            this.directoryBox = new View.DirectoryBox(nodes.filter('.dialogs'));
-            this.nameBox = new View.NameBox(nodes.filter('.dialogs'));
-            this.uploadBox = new View.UploadBox(nodes.filter('.dialogs'));
+            let dialogs = nodes.filter('.dialogs');
+            this.directoryBox = new View.DirectoryBox(dialogs);
+            this.nameBox = new View.NameBox(dialogs);
+            this.uploadBox = new View.UploadBox(dialogs);
             nodes.filter('main').find('.upload').click(this.uploadBox.show.bind(this.uploadBox));
+
+            nodes.filter('main').find('.new-folder').click(() => {
+                this.nameBox.input().then(data => {
+                    if (!data) {
+                        return;
+                    }
+                    Api.newFolder(fm.path, data)
+                        .then(view.reload);
+                })
+            });
 
             this.loadPath();
 
@@ -219,8 +234,8 @@ const fm = function () {
             Cookies.set('path', path, {expires: 30});
         }
 
-        reload() {
-            this.loadPath(fm.path);
+        get reload() {
+            return this.loadPath.bind(this, fm.path);
         }
     };
 
@@ -507,7 +522,7 @@ const fm = function () {
             this.inputNode = root.find('input[type=text]');
         }
 
-        input(value) {
+        input(value = '') {
             this.inputNode.val(value);
             return super.input(() => this.inputNode.val());
         }
