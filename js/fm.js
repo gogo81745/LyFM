@@ -549,7 +549,7 @@ const fm = function () {
 
             this.uploadNode.on('change', () => {
                 for (let f of this.uploadNode[0].files) {
-                    this.list.push({file: f});
+                    this.list.push(new UploadBox.Item(f));
                 }
                 this.update();
             });
@@ -559,19 +559,19 @@ const fm = function () {
         upload() {
             let list = this.list;
             for (let o of list) {
-                if (o.node.hasClass('success')) {
+                if (o.status === View.UploadBox.Item.SUCCESS || o.status === View.UploadBox.Item.UPLOADING) {
                     continue;
                 }
                 let handleSuccess = data => {
-                    o.node.find('.upload-status').addClass('success');
-                    o.node.find('.upload-status').text('上传成功');
+                    o.setStatus(View.UploadBox.Item.SUCCESS);
                     view.reload();
                 };
                 let handleFailed = data => {
-                    o.node.find('.upload-status').addClass('failed');
-                    o.node.find('.upload-status').text(data.error);
+                    o.setStatus(View.UploadBox.Item.FAILED, data.error);
+                    view.reload();
                 };
 
+                o.setStatus(View.UploadBox.Item.UPLOADING);
                 Api.upload(fm.path, o.file)
                     .then(Api.filterError)
                     .then(handleSuccess)
@@ -603,6 +603,40 @@ const fm = function () {
 
 
     };
+
+    View.UploadBox.Item = class {
+        constructor(file) {
+            this.file = file;
+            this.status = View.UploadBox.Item.INIT;
+        }
+
+        setStatus(value, ...args) {
+            this.status = value;
+
+            let className, text = null;
+            if (value === View.UploadBox.Item.SUCCESS) {
+                className = 'success';
+                text = '上传成功';
+            } else if (value === View.UploadBox.Item.FAILED) {
+                className = 'failed';
+                text = args[0];
+            } else if (value === View.UploadBox.Item.UPLOADING) {
+                className = ' ';
+                text = '正在上传';
+            }
+
+            if (className && this.node) {
+                console.log(value); // TODO delete it
+                this.node.find('.upload-status').attr('class', ['upload-status', className].join(' '));
+                this.node.find('.upload-status').text(text);
+            }
+        }
+    };
+
+    View.UploadBox.Item.SUCCESS = 'Success';
+    View.UploadBox.Item.FAILED = 'Failed';
+    View.UploadBox.Item.INIT = 'Init';
+    View.UploadBox.Item.UPLOADING = 'Uploading';
 
     class FileManager {
 
