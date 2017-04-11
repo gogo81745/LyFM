@@ -354,7 +354,6 @@ const fm = function () {
 
         rename() {
             view.nameBox.input(this.name).then(data => {
-                console.log(data); // TODO delete it
                 if (!data) {
                     return;
                 }
@@ -626,7 +625,6 @@ const fm = function () {
             }
 
             if (className && this.node) {
-                console.log(value); // TODO delete it
                 this.node.find('.upload-status').attr('class', ['upload-status', className].join(' '));
                 this.node.find('.upload-status').text(text);
             }
