@@ -5,6 +5,13 @@ body, input, button, textarea {
   font-size: 16px;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Arial", "sans-serif"; }
 
+.index .sidebar {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  box-sizing: border-box;
+  height: 100%; }
+
 #navbar {
   width: 100%;
   position: fixed; }
@@ -35,7 +42,7 @@ body, input, button, textarea {
   box-sizing: border-box;
   padding-left: 1em;
   width: 75%; }
-.index aside {
+.index .sidebar {
   width: 25%; }
 
 @media (max-width: 800px) {
@@ -178,12 +185,30 @@ body, input, button, textarea {
     #upload-dialog .upload-list .upload-item .upload-status.failed {
       color: #ff312a; }
 
+.sidebar .messages {
+  position: fixed;
+  display: flex;
+  flex-direction: column-reverse;
+  bottom: 0;
+  right: 0; }
+
 .message {
   padding: .5em 1em;
   font-size: 1.2em; }
+  .message .close-button {
+    float: right;
+    margin-left: 1em; }
+
+.message.success {
+  background: #4cae4c;
+  color: white; }
+  .message.success .close-button > a {
+    color: white; }
 
 .message.error {
   background: #ff312a;
   color: white; }
+  .message.error .close-button > a {
+    color: white; }
 
 /*# sourceMappingURL=style.css.map */

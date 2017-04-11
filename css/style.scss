@@ -58,7 +58,8 @@ body, input, button, textarea {
     width: 75%;
 
   }
-  aside {
+  .sidebar {
+    @extend %flex-column;
     width: 25%;
   }
 
@@ -259,12 +260,37 @@ body, input, button, textarea {
   }
 }
 
+.sidebar {
+  .messages {
+    position: fixed;
+    display: flex;
+    flex-direction: column-reverse;
+    bottom: 0;
+    right: 0;
+  }
+}
+
 .message {
   padding: .5em 1em;
   font-size: 1.2em;
+  .close-button {
+    float: right;
+    margin-left: 1em;
+  }
+}
+
+.message.success {
+  background: #4cae4c;
+  color: white;
+  .close-button > a {
+    color: white;
+  }
 }
 
 .message.error {
   background: #ff312a;
   color: white;
+  .close-button > a {
+    color: white;
+  }
 }

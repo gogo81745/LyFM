@@ -186,12 +186,15 @@ const fm = function () {
                 </main>
                 
                 <aside class="sidebar">
+                    <div class="messages">
+                        
+                    </div>
                 </aside>
-                
                 
                 <div class="dialogs"></div>
             `);
             this.listNode = nodes.filter('main').find('.file-list');
+            this.messageNode = nodes.filter('.sidebar').find('.messages');
             layout.append(nodes);
 
             let dialogs = nodes.filter('.dialogs');
@@ -206,7 +209,9 @@ const fm = function () {
                         return;
                     }
                     Api.newFolder(fm.path, data)
-                        .then(view.reload);
+                        .then(Api.filterError)
+                        .then(view.reload)
+                        .catch(view.errorMessage);
                 })
             });
 
@@ -236,6 +241,26 @@ const fm = function () {
 
         get reload() {
             return this.loadPath.bind(this, fm.path);
+        }
+
+        message(status, message) {
+            let node = $(`
+                <div class="message ${status}">
+                    <div class="close-button"><a><i class="zmdi zmdi-close"></i></a></div>
+                    <div class="message-content">${message}</div>
+                </div>
+            `);
+            node.find('.close-button').click(() => {
+                node.remove();
+            });
+            this.messageNode.append(node);
+        }
+
+        get errorMessage() {
+            return data => {
+                console.error(data);
+                this.message('error', data.error);
+            }
         }
     };
 
@@ -343,7 +368,10 @@ const fm = function () {
 
         download() {
             if (!this.isDirectory()) {
-                Api.download(this.path);
+                Api.download(this.path)
+                    .then(Api.filterError)
+                    .then(view.reload)
+                    .catch(view.errorMessage);
             }
         }
 
@@ -352,8 +380,10 @@ const fm = function () {
                 if (!data) {
                     return;
                 }
-                Api.copy(this.path, data, this.isDirectory() ? 'dir' : 'file');
-                view.reload();
+                Api.copy(this.path, data, this.isDirectory() ? 'dir' : 'file')
+                    .then(Api.filterError)
+                    .then(view.reload)
+                    .catch(view.errorMessage);
             })
         }
 
@@ -362,8 +392,10 @@ const fm = function () {
                 if (!data) {
                     return;
                 }
-                Api.move(this.path, data, this.isDirectory() ? 'dir' : 'file');
-                view.reload();
+                Api.move(this.path, data, this.isDirectory() ? 'dir' : 'file')
+                    .then(Api.filterError)
+                    .then(view.reload)
+                    .catch(view.errorMessage);
             })
         }
 
@@ -372,14 +404,18 @@ const fm = function () {
                 if (!data) {
                     return;
                 }
-                Api.rename(this.path, data);
-                view.reload();
+                Api.rename(this.path, data)
+                    .then(Api.filterError)
+                    .then(view.reload)
+                    .catch(view.errorMessage);
             })
         }
 
         delete() {
-            Api.delete(this.path);
-            view.reload();
+            Api.delete(this.path)
+                .then(Api.filterError)
+                .then(view.reload)
+                .catch(view.errorMessage);
         }
 
         static typeOf(data) {
