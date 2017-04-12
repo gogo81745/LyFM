@@ -532,6 +532,7 @@ const fm = function () {
                 case 'scss':
                     return Item.CSS;
                 case 'js':
+                case 'json':
                     return Item.JAVASCRIPT;
                 case 'jsx':
                     return Item.JSX;

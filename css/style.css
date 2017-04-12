@@ -115,6 +115,12 @@ body, input, button, textarea {
     background-image: url("../img/icon-javascript.png"); }
   .file-list .php > .icon {
     background-image: url("../img/icon-php.png"); }
+  .file-list .markdown > .icon {
+    background-image: url("../img/icon-markdown.png"); }
+  .file-list .xml > .icon {
+    background-image: url("../img/icon-xml.png"); }
+  .file-list .yaml > .icon {
+    background-image: url("../img/icon-yaml.png"); }
 
 .dialog-background {
   display: flex;
