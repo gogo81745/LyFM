@@ -38,9 +38,9 @@ const fm = function () {
         },
 
         download: path => {
-            let inputs = `<input type="hidden" name="path" value="${path}" />`;
-            $(`<form action="Api/file_download" method="get" >${inputs}</form>`)
-                .appendTo('body').submit().remove();
+            $(`<form action="Api/file_download" method="get" >
+             <input type="hidden" name="path" value="${path}" />
+             </form>`).appendTo('body').submit().remove();
         },
 
         fileList: path => {
@@ -78,21 +78,6 @@ const fm = function () {
                     error: reject
                 });
             });
-        },
-        loadPath: path => {
-
-            let makeList = data => {
-                let res = [];
-                res.push({name: '..', path: data.parent});
-                res.push(...data.dir);
-                res.push(...data.file);
-                return res;
-            };
-            let buildItem = data => new View.Item(data);
-
-            return Api.fileList(path)
-                .then(makeList)
-                .then(F.map(buildItem));
         },
 
         dirTree: (path = '') => {
@@ -186,9 +171,14 @@ const fm = function () {
                 </main>
                 
                 <aside class="sidebar">
-                    <div class="messages">
-                        
+                    <div class="multi-action">
+                        <h5>批量操作</h5>
+                        <button class="btn btn-default copy">复制</button>
+                        <button class="btn btn-default move">移动</button>
+                        <button class="btn btn-default download">下载</button>
+                        <button class="btn btn-default delete">删除</button>
                     </div>
+                    <div class="messages"></div>
                 </aside>
                 
                 <div class="dialogs"></div>
@@ -215,6 +205,52 @@ const fm = function () {
                 })
             });
 
+            nodes.filter('.sidebar').find('.multi-action .copy').click(() => {
+                view.directoryBox.input().then(data => {
+                    if (!data) {
+                        return;
+                    }
+                    this.selected.forEach(item =>
+                        Api.copy(item.path, data, item.isDirectory() ? 'dir' : 'file')
+                            .then(Api.filterError)
+                            .catch(view.errorMessage)
+                    );
+                });
+            });
+
+            nodes.filter('.sidebar').find('.multi-action .move').click(() => {
+                view.directoryBox.input().then(data => {
+                    if (!data) {
+                        return;
+                    }
+                    Promise.all(this.selected.map(item =>
+                        Api.move(item.path, data, item.isDirectory() ? 'dir' : 'file')
+                            .then(Api.filterError)
+                            .catch(view.errorMessage)
+                    )).then(view.reload);
+                });
+            });
+
+
+            nodes.filter('.sidebar').find('.multi-action .download').click(() => {
+                this.selected.forEach((item, i) => {
+                    /**
+                     * 貌似不能同时一次请求多个文件，好吧那我就错开时间
+                     */
+                    setTimeout(() => {
+                        item.download();
+                    }, i * 50)
+                })
+            });
+
+            nodes.filter('.sidebar').find('.multi-action .delete').click(() => {
+                Promise.all(this.selected.map(item =>
+                    Api.delete(item.path)
+                        .then(Api.filterError)
+                        .catch(view.errorMessage)
+                )).then(view.reload);
+            });
+
             this.loadPath();
 
         }
@@ -228,15 +264,36 @@ const fm = function () {
             }
 
             this.listNode.empty();
+            this.selected = [];
+            this.list = [];
 
-            let append = e => this.listNode.append(e.node);
+            let append = e => {
+                this.list.push(e);
+                this.listNode.append(e.node)
+            };
 
-            Api.loadPath(path)
+            this.getList(path)
                 .then(F.each(append));
 
             this.nodes.find('.toolbar .path').text(path);
 
             Cookies.set('path', path, {expires: 30});
+        }
+
+        getList(path) {
+
+            let makeList = data => {
+                let res = [];
+                res.push({name: '..', path: data.parent});
+                res.push(...data.dir);
+                res.push(...data.file);
+                return res;
+            };
+            let buildItem = data => new View.List.Item(data);
+
+            return Api.fileList(path)
+                .then(makeList)
+                .then(F.map(buildItem));
         }
 
         get reload() {
@@ -262,9 +319,24 @@ const fm = function () {
                 this.message('error', data.error);
             }
         }
+
+        selectItem(item, flag) {
+            if (!item) {
+                return;
+            }
+            let selected = this.selected;
+            if (flag !== true && flag !== false) {
+                flag = !selected.includes(item);
+            }
+            if (flag && !selected.includes(item)) {
+                selected.push(item);
+            } else if (!flag && selected.includes(item)) {
+                selected.splice(selected.indexOf(item), 1);
+            }
+        }
     };
 
-    View.Item = class Item {
+    View.List.Item = class Item {
 
         constructor(data) {
             this.data = data;
@@ -281,6 +353,8 @@ const fm = function () {
             } else {
                 this.groupOwner = '';
             }
+
+            this.selected = false;
 
             let node = this.node = $(`
                 <div class="item ${this.type}">
@@ -305,6 +379,9 @@ const fm = function () {
             if (this.name === '.' || this.name === '..') {
                 return;
             }
+
+            this.checkbox = node.find('input[type=checkbox]');
+            node.click(this.select.bind(this));
 
             if (data.size) {
                 let formatSize = size => {
@@ -355,7 +432,7 @@ const fm = function () {
         }
 
         isDirectory() {
-            return this.type === View.Item.DIR;
+            return this.type === Item.DIR;
         }
 
         click() {
@@ -366,12 +443,19 @@ const fm = function () {
             }
         }
 
+        select(flag) {
+            if (flag === true || flag === false) {
+                this.selected = flag;
+            } else {
+                this.selected = !this.selected;
+            }
+            this.checkbox.prop('checked', this.selected);
+            view.selectItem(this, this.selected);
+        }
+
         download() {
             if (!this.isDirectory()) {
-                Api.download(this.path)
-                    .then(Api.filterError)
-                    .then(view.reload)
-                    .catch(view.errorMessage);
+                Api.download(this.path);
             }
         }
 
@@ -420,15 +504,15 @@ const fm = function () {
 
         static typeOf(data) {
             if (!data['exten']) {
-                return View.Item.DIR;
+                return Item.DIR;
             }
             //TODO
-            return View.Item.FILE;
+            return Item.FILE;
         }
 
     };
-    View.Item.DIR = 'dir';
-    View.Item.FILE = 'file';
+    View.List.Item.DIR = 'dir';
+    View.List.Item.FILE = 'file';
 
     View.DialogBox = class DialogBox {
 

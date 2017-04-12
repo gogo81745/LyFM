@@ -185,12 +185,14 @@ body, input, button, textarea {
     #upload-dialog .upload-list .upload-item .upload-status.failed {
       color: #ff312a; }
 
-.sidebar .messages {
-  position: fixed;
-  display: flex;
-  flex-direction: column-reverse;
-  bottom: 0;
-  right: 0; }
+.sidebar {
+  padding: 1.6em 1em; }
+  .sidebar .messages {
+    position: fixed;
+    display: flex;
+    flex-direction: column-reverse;
+    bottom: 0;
+    right: 0; }
 
 .message {
   padding: .5em 1em;
