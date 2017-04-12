@@ -107,6 +107,14 @@ body, input, button, textarea {
     background-image: url("../img/icon-file.png"); }
   .file-list .text > .icon {
     background-image: url("../img/icon-text.png"); }
+  .file-list .html > .icon {
+    background-image: url("../img/icon-html.png"); }
+  .file-list .css > .icon {
+    background-image: url("../img/icon-css.png"); }
+  .file-list .javascript > .icon {
+    background-image: url("../img/icon-javascript.png"); }
+  .file-list .php > .icon {
+    background-image: url("../img/icon-php.png"); }
 
 .dialog-background {
   display: flex;

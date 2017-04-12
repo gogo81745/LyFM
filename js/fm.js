@@ -356,8 +356,13 @@ const fm = function () {
 
             this.selected = false;
 
+            let typeClass = this.isDirectory() ? Item.DIR : Item.FILE;
+            if (this.type !== typeClass) {
+                typeClass += ' ' + this.type;
+            }
+
             let node = this.node = $(`
-                <div class="item ${this.type}">
+                <div class="item ${typeClass}">
                     <input type="checkbox">
                     <div class="icon"></div>
                     <div class="filename"></div>
@@ -409,6 +414,10 @@ const fm = function () {
                 downloadNode.click(this.download.bind(this));
                 downloadNode.attr('title', this.name);
                 actions.push(downloadNode);
+
+                let editNode = $(`<a><i class="zmdi zmdi-edit"></i></a>`);
+                editNode.click(this.edit.bind(this));
+                actions.push(editNode);
             }
 
             let copyNode = $('<a><i class="zmdi zmdi-copy"></i></a>');
@@ -459,6 +468,12 @@ const fm = function () {
             }
         }
 
+        edit() {
+            if (!this.isDirectory()) {
+                //TODO
+            }
+        }
+
         copy() {
             view.directoryBox.input().then(data => {
                 if (!data) {
@@ -506,13 +521,50 @@ const fm = function () {
             if (!data['exten']) {
                 return Item.DIR;
             }
-            //TODO
+            let extend = data['exten'];
+            switch (extend) {
+                case 'txt':
+                    return Item.TXT;
+                case 'html':
+                    return Item.HTML;
+                case 'css':
+                case 'less':
+                case 'scss':
+                    return Item.CSS;
+                case 'js':
+                    return Item.JAVASCRIPT;
+                case 'jsx':
+                    return Item.JSX;
+                case 'php':
+                    return Item.PHP;
+                case 'py':
+                    return Item.PYTHON;
+                case 'xml':
+                    return Item.XML;
+                case 'yml':
+                case 'yaml':
+                    return Item.YAML;
+                case 'md':
+                case 'markdown':
+                    return Item.MARKDOWN;
+            }
+
             return Item.FILE;
         }
 
     };
     View.List.Item.DIR = 'dir';
     View.List.Item.FILE = 'file';
+    View.List.Item.TXT = 'text';
+    View.List.Item.HTML = 'html';
+    View.List.Item.CSS = 'css';
+    View.List.Item.JAVASCRIPT = 'javascript';
+    View.List.Item.JSX = 'jsx';
+    View.List.Item.PHP = 'php';
+    View.List.Item.PYTHON = 'python';
+    View.List.Item.XML = 'xml';
+    View.List.Item.YAML = 'yaml';
+    View.List.Item.MARKDOWN = 'markdown';
 
     View.DialogBox = class DialogBox {
 
