@@ -60,7 +60,13 @@ const fm = function () {
         delete: path => {
             return Api.get('Api/delete', {path});
         },
+        read: (path, charset = 'utf-8') => {
+            return Api.get('Api/get_file', {path, char_set: charset});
+        },
 
+        write: (path, content, charset = 'utf-8') => {
+            return Api.post('Api/put_file', {path, content, char_set: charset})
+        },
         upload: (path, file) => {
             let formData = new FormData();
             formData.append('path', path);
@@ -122,7 +128,7 @@ const fm = function () {
             layout.addClass('login');
             layout.append($(`
                 <h1 class="">登录</h1>
-                <form onsubmit="false" class="login-box input-group">
+                <form onsubmit="false" method="post" class="login-box input-group">
                     <input type="text" name="password" class="form-control" placeholder="password">
                     <span class="input-group-btn">
                         <button class="btn btn-primary" type="button">登录</button>
@@ -192,6 +198,7 @@ const fm = function () {
             this.nameBox = new View.NameBox(dialogs);
             this.uploadBox = new View.UploadBox(dialogs);
             nodes.filter('main').find('.upload').click(this.uploadBox.show.bind(this.uploadBox));
+            this.editBox = new View.EditBox(dialogs);
 
             nodes.filter('main').find('.new-folder').click(() => {
                 this.nameBox.input().then(data => {
@@ -470,7 +477,7 @@ const fm = function () {
 
         edit() {
             if (!this.isDirectory()) {
-                //TODO
+                view.editBox.load(this);
             }
         }
 
@@ -508,6 +515,12 @@ const fm = function () {
                     .then(view.reload)
                     .catch(view.errorMessage);
             })
+        }
+
+        read(charset = 'utf-8') {
+            return Api.read(this.path, charset)
+                .then(Api.filterError)
+                .catch(view.errorMessage);
         }
 
         delete() {
@@ -557,6 +570,7 @@ const fm = function () {
     View.List.Item.DIR = 'dir';
     View.List.Item.FILE = 'file';
     View.List.Item.TXT = 'text';
+    View.List.Item.CLIKE = 'clike';
     View.List.Item.HTML = 'html';
     View.List.Item.CSS = 'css';
     View.List.Item.JAVASCRIPT = 'javascript';
@@ -824,6 +838,120 @@ const fm = function () {
     View.UploadBox.Item.INIT = 'Init';
     View.UploadBox.Item.UPLOADING = 'Uploading';
 
+    View.EditBox = class EditBox extends View.DialogBox {
+        constructor(node) {
+            super();
+            let root = this.root = $(`
+                <div id="edit-dialog" class="dialog-background hide">
+                    <div class="dialog">
+                        <div class="title-box">
+                            <div class="title"></div>
+                            <div class="close-button"><a><i class="zmdi zmdi-close"></i></a></div>
+                        </div>
+                        
+                        <textarea></textarea>
+                        
+                        <div class="action-line">
+                            <button class="save-button btn btn-success">保存</button>
+                            <button class="confirm-button btn btn-primary ">关闭</button>
+                        </div>
+                    </div>
+                </div>`);
+            node.append(root);
+            root.find('.close-button,.confirm-button').click(this.hide.bind(this));
+
+            root.find('.save-button').click(this.save.bind(this));
+
+            this.textarea = node.find('textarea');
+            this.namebox = node.find('.title');
+            this.scripts = [];
+
+        }
+
+
+        load(item) {
+            this.item = item;
+            let type = EditBox.typeOf(item.type);
+            this.namebox.text(item.path);
+            this.loadMode(type);
+            item.read()
+                .then(data => {
+                    this.show(type.MIME, data.text);
+                });
+        }
+
+        loadMode(type) {
+            if (type && type.script && !this.scripts.includes(type.script)) {
+                if (type.dependencies) {
+                    type.dependencies.forEach(this.loadMode.bind(this));
+                }
+                this.scripts.push(type.script);
+                $('body').append($(`<script src="js/mode/${type.script}"></script>`));
+            }
+        }
+
+
+        save() {
+            Api.write(this.item.path, this.cm.getDoc().getValue());
+        }
+
+        show(type, content) {
+            super.show();
+            this.textarea.val(content);
+            this.cm = CodeMirror.fromTextArea(this.textarea[0], this.config(type));
+        }
+
+        hide() {
+            this.item = null;
+            this.cm.toTextArea();
+            super.hide();
+        }
+
+        config(type) {
+            return {
+                mode: type,
+                lineNumbers: true,
+                lineWrapping: true,
+                indentUnit: 4,
+            };
+        }
+
+        static typeOf(type) {
+            let Item = View.List.Item;
+            let types = {};
+            types[Item.TXT] = {MIME: 'text/plain'};
+            types[Item.MARKDOWN] = {MIME: 'text/x-markdown', script: 'markdown.js',};
+            types[Item.XML] = {MIME: 'application/xml', script: 'xml.js',};
+            types[Item.CSS] = {MIME: 'text/css', script: 'css.js',};
+            types[Item.JAVASCRIPT] = {MIME: 'text/javascript', script: 'javascript.js',};
+            types[Item.CLIKE] = {script: 'clike.js',};
+            types[Item.HTML] = {
+                MIME: 'text/html',
+                script: 'html.js',
+                dependencies: [types[Item.XML], types[Item.CSS], types[Item.JAVASCRIPT]]
+            };
+            types[Item.JSX] = {MIME: 'text/jsx', script: 'jsx.js',};
+            types[Item.PHP] = {
+                MIME: 'application/x-httpd-php',
+                script: 'php.js',
+                dependencies: [types[Item.HTML], types[Item.CLIKE]]
+            };
+            types[Item.PYTHON] = {MIME: 'text/x-cython', script: 'python.js',};
+            types[Item.YAML] = {MIME: 'text/x-yaml', script: 'yaml.js',};
+
+            let res = types[type];
+            if (!res) {
+                res = types[Item.TXT];
+            }
+            return res;
+        }
+
+
+        input() {
+        }
+    };
+
+
     class FileManager {
 
         constructor() {
@@ -844,6 +972,7 @@ const fm = function () {
             if (page === 'index') {
                 (view = new View.List(this.layout)).render();
             }
+            history.pushState({}, '', '.');
         }
 
 

@@ -281,6 +281,18 @@ body, input, button, textarea {
   }
 }
 
+#edit-dialog {
+  .dialog {
+    width: 80vw;
+    height: 80vh;
+  }
+  .CodeMirror {
+    width: 100%;
+    height: 100%;
+    padding: 0;
+  }
+}
+
 .sidebar {
   padding: 1.6em 1em;
   .messages {
