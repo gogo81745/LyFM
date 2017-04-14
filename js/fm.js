@@ -349,7 +349,7 @@ const fm = function () {
             this.data = data;
             this.name = data.name;
             this.path = data.path;
-            this.type = Item.typeOf(data);
+            let type = this.type = FileType.from(data);
 
             this.perms = data.perms || '';
             this.group = data.group || '';
@@ -363,13 +363,8 @@ const fm = function () {
 
             this.selected = false;
 
-            let typeClass = this.isDirectory() ? Item.DIR : Item.FILE;
-            if (this.type !== typeClass) {
-                typeClass += ' ' + this.type;
-            }
-
             let node = this.node = $(`
-                <div class="item ${typeClass}">
+                <div class="item ${type.className}">
                     <input type="checkbox">
                     <div class="icon"></div>
                     <div class="filename"></div>
@@ -416,39 +411,49 @@ const fm = function () {
             let actions = [];
             let actionsNode = node.find('.actions');
 
-            if (!this.isDirectory()) {
+            if (type.actions.includes('download')) {
                 let downloadNode = $(`<a><i class="zmdi zmdi-download"></i></a>`);
                 downloadNode.click(this.download.bind(this));
                 downloadNode.attr('title', this.name);
                 actions.push(downloadNode);
+            }
 
+            if (type.actions.includes('edit')) {
                 let editNode = $(`<a><i class="zmdi zmdi-edit"></i></a>`);
                 editNode.click(this.edit.bind(this));
                 actions.push(editNode);
             }
 
-            let copyNode = $('<a><i class="zmdi zmdi-copy"></i></a>');
-            copyNode.click(this.copy.bind(this));
-            actions.push(copyNode);
+            if (type.actions.includes('copy')) {
+                let copyNode = $('<a><i class="zmdi zmdi-copy"></i></a>');
+                copyNode.click(this.copy.bind(this));
+                actions.push(copyNode);
+            }
 
-            let moveNode = $('<a><i class="zmdi zmdi-redo"></i></a>');
-            moveNode.click(this.move.bind(this));
-            actions.push(moveNode);
+            if (type.actions.includes('move')) {
+                let moveNode = $('<a><i class="zmdi zmdi-redo"></i></a>');
+                moveNode.click(this.move.bind(this));
+                actions.push(moveNode);
+            }
 
-            let renameNode = $('<a><i class="zmdi zmdi-format-size"></i></a>');
-            renameNode.click(this.rename.bind(this));
-            actions.push(renameNode);
+            if (type.actions.includes('rename')) {
+                let renameNode = $('<a><i class="zmdi zmdi-format-size"></i></a>');
+                renameNode.click(this.rename.bind(this));
+                actions.push(renameNode);
+            }
 
-            let deleteNode = $('<a><i class="zmdi zmdi-delete"></i></a>');
-            deleteNode.click(this.delete.bind(this));
-            actions.push(deleteNode);
+            if (type.actions.includes('delete')) {
+                let deleteNode = $('<a><i class="zmdi zmdi-delete"></i></a>');
+                deleteNode.click(this.delete.bind(this));
+                actions.push(deleteNode);
+            }
 
             let appendActions = action => actionsNode.append(action);
             actions.forEach(appendActions);
         }
 
         isDirectory() {
-            return this.type === Item.DIR;
+            return this.type.isDirectory;
         }
 
         click() {
@@ -530,56 +535,150 @@ const fm = function () {
                 .catch(view.errorMessage);
         }
 
-        static typeOf(data) {
+    };
+
+
+    class FileType {
+        constructor({type = null, extension = null, isDirectory = false, MIME = null, cmScript = null, cmDependencies = null, actions = []}) {
+            this.type = type;
+            this.extension = extension;
+            this.isDirectory = isDirectory;
+            this.MIME = MIME;
+            this.cmScript = cmScript;
+            this.cmDependencies = cmDependencies;
+            this.actions = actions;
+        }
+
+        static from(data) {
+
             if (!data['exten']) {
-                return Item.DIR;
+                return new FileType(FileType.DIRECTORY);
             }
-            let extend = data['exten'];
-            switch (extend) {
+
+            let extension = data['exten'];
+            switch (extension) {
                 case 'txt':
-                    return Item.TXT;
+                    return new FileType(FileType.TXT);
                 case 'html':
-                    return Item.HTML;
+                    return new FileType(FileType.HTML);
                 case 'css':
                 case 'less':
                 case 'scss':
-                    return Item.CSS;
+                    return new FileType(FileType.CSS);
                 case 'js':
                 case 'json':
-                    return Item.JAVASCRIPT;
-                case 'jsx':
-                    return Item.JSX;
+                    return new FileType(FileType.JAVASCRIPT);
                 case 'php':
-                    return Item.PHP;
+                    return new FileType(FileType.PHP);
                 case 'py':
-                    return Item.PYTHON;
+                    return new FileType(FileType.PYTHON);
                 case 'xml':
-                    return Item.XML;
+                    return new FileType(FileType.XML);
                 case 'yml':
                 case 'yaml':
-                    return Item.YAML;
+                    return new FileType(FileType.YAML);
                 case 'md':
                 case 'markdown':
-                    return Item.MARKDOWN;
+                    return new FileType(FileType.MARKDOWN);
             }
+            return new FileType({extension, actions: FileType.fileActions()});
 
-            return Item.FILE;
         }
 
-    };
-    ListView.Item.DIR = 'dir';
-    ListView.Item.FILE = 'file';
-    ListView.Item.TXT = 'text';
-    ListView.Item.CLIKE = 'clike';
-    ListView.Item.HTML = 'html';
-    ListView.Item.CSS = 'css';
-    ListView.Item.JAVASCRIPT = 'javascript';
-    ListView.Item.JSX = 'jsx';
-    ListView.Item.PHP = 'php';
-    ListView.Item.PYTHON = 'python';
-    ListView.Item.XML = 'xml';
-    ListView.Item.YAML = 'yaml';
-    ListView.Item.MARKDOWN = 'markdown';
+        get className() {
+            if (this.isDirectory) {
+                return this.type;
+            }
+            return `file ${this.type || ''}`;
+        }
+
+        is(other) {
+            return this.type === other;
+        }
+
+        static baseActions() {
+            return ['copy', 'move', 'delete', 'rename'];
+        }
+
+        static fileActions() {
+            return FileType.baseActions().concat(['download', 'edit']);
+        }
+    }
+
+    FileType.DIRECTORY = new FileType({
+        type: 'dir',
+        isDirectory: true,
+        actions: FileType.baseActions()
+    });
+    FileType.TXT = new FileType({
+        type: 'text',
+        extension: 'txt',
+        MIME: 'text/plain',
+        actions: FileType.fileActions()
+    });
+    FileType.MARKDOWN = new FileType({
+        type: 'markdown',
+        extension: 'md',
+        MIME: 'text/x-markdown',
+        cmScript: 'markdown.js',
+        actions: FileType.fileActions()
+    });
+    FileType.CSS = new FileType({
+        type: 'css',
+        extension: 'css',
+        MIME: 'text/css',
+        cmScript: 'css.js',
+        actions: FileType.fileActions()
+    });
+    FileType.JAVASCRIPT = new FileType({
+        type: 'javascript',
+        extension: 'js',
+        MIME: 'text/javascript',
+        cmScript: 'javascript.js',
+        actions: FileType.fileActions()
+    });
+    FileType.CLIKE = new FileType({
+        cmScript: 'clike.js',
+    });
+    FileType.XML = new FileType({
+        type: 'xml',
+        extension: 'xml',
+        MIME: 'application/xml',
+        cmScript: 'xml.js',
+        actions: FileType.fileActions()
+    });
+    FileType.HTML = new FileType({
+        type: 'html',
+        extension: 'html',
+        MIME: 'text/html',
+        cmScript: 'html.js',
+        cmDependencies: [FileType.XML, FileType.CSS, FileType.JAVASCRIPT],
+        actions: FileType.fileActions()
+    });
+    FileType.PHP = new FileType({
+        type: 'php',
+        extension: 'php',
+        MIME: 'application/x-httpd-php',
+        cmScript: 'php.js',
+        cmDependencies: [FileType.HTML, FileType.CLIKE],
+        actions: FileType.fileActions()
+    });
+    FileType.PYTHON = 'python';
+    FileType.YAML = new FileType({
+        type: 'yaml',
+        extension: 'yaml',
+        MIME: 'text/x-yaml',
+        cmScript: 'yaml.js',
+        actions: FileType.fileActions()
+    });
+    FileType.PYTHON = new FileType({
+        type: 'python',
+        extension: 'py',
+        MIME: 'text/x-cython',
+        cmScript: 'python.js',
+        actions: FileType.fileActions()
+    });
+
 
     class DialogBox {
 
@@ -871,22 +970,22 @@ const fm = function () {
 
         load(item) {
             this.item = item;
-            let type = EditBox.typeOf(item.type);
             this.namebox.text(item.path);
-            this.loadMode(type);
+            this.loadMode(item.type);
             item.read()
                 .then(data => {
-                    this.show(type.MIME, data.text);
+                    this.show(item.type.MIME || 'text/plain', data.text);
                 });
         }
 
         loadMode(type) {
-            if (type && type.script && !this.scripts.includes(type.script)) {
-                if (type.dependencies) {
-                    type.dependencies.forEach(this.loadMode.bind(this));
+            console.log(type); // TODO delete it
+            if (type && type.cmScript && !this.scripts.includes(type.cmScript)) {
+                if (type.cmDependencies) {
+                    type.cmDependencies.forEach(this.loadMode.bind(this));
                 }
-                this.scripts.push(type.script);
-                $('body').append($(`<script src="js/mode/${type.script}"></script>`));
+                this.scripts.push(type.cmScript);
+                $('body').append($(`<script src="js/mode/${type.cmScript}"></script>`));
             }
         }
 
@@ -915,37 +1014,6 @@ const fm = function () {
                 indentUnit: 4,
             };
         }
-
-        static typeOf(type) {
-            let Item = ListView.Item;
-            let types = {};
-            types[Item.TXT] = {MIME: 'text/plain'};
-            types[Item.MARKDOWN] = {MIME: 'text/x-markdown', script: 'markdown.js',};
-            types[Item.XML] = {MIME: 'application/xml', script: 'xml.js',};
-            types[Item.CSS] = {MIME: 'text/css', script: 'css.js',};
-            types[Item.JAVASCRIPT] = {MIME: 'text/javascript', script: 'javascript.js',};
-            types[Item.CLIKE] = {script: 'clike.js',};
-            types[Item.HTML] = {
-                MIME: 'text/html',
-                script: 'html.js',
-                dependencies: [types[Item.XML], types[Item.CSS], types[Item.JAVASCRIPT]]
-            };
-            types[Item.JSX] = {MIME: 'text/jsx', script: 'jsx.js',};
-            types[Item.PHP] = {
-                MIME: 'application/x-httpd-php',
-                script: 'php.js',
-                dependencies: [types[Item.HTML], types[Item.CLIKE]]
-            };
-            types[Item.PYTHON] = {MIME: 'text/x-cython', script: 'python.js',};
-            types[Item.YAML] = {MIME: 'text/x-yaml', script: 'yaml.js',};
-
-            let res = types[type];
-            if (!res) {
-                res = types[Item.TXT];
-            }
-            return res;
-        }
-
 
         input() {
         }
@@ -980,4 +1048,5 @@ const fm = function () {
 
     return new FileManager();
 
-}();
+}
+();
