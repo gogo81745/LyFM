@@ -118,7 +118,7 @@ const fm = function () {
 
     }
 
-    View.Login = class Login extends View {
+    class LoginView extends View {
         render() {
 
             super.render();
@@ -152,9 +152,9 @@ const fm = function () {
                     .catch(handleError);
             });
         }
-    };
+    }
 
-    View.List = class List extends View {
+    class ListView extends View {
 
         render() {
             super.render();
@@ -194,11 +194,11 @@ const fm = function () {
             layout.append(nodes);
 
             let dialogs = nodes.filter('.dialogs');
-            this.directoryBox = new View.DirectoryBox(dialogs);
-            this.nameBox = new View.NameBox(dialogs);
-            this.uploadBox = new View.UploadBox(dialogs);
+            this.directoryBox = new DirectoryBox(dialogs);
+            this.nameBox = new NameBox(dialogs);
+            this.uploadBox = new UploadBox(dialogs);
             nodes.filter('main').find('.upload').click(this.uploadBox.show.bind(this.uploadBox));
-            this.editBox = new View.EditBox(dialogs);
+            this.editBox = new EditBox(dialogs);
 
             nodes.filter('main').find('.new-folder').click(() => {
                 this.nameBox.input().then(data => {
@@ -296,7 +296,7 @@ const fm = function () {
                 res.push(...data.file);
                 return res;
             };
-            let buildItem = data => new View.List.Item(data);
+            let buildItem = data => new ListView.Item(data);
 
             return Api.fileList(path)
                 .then(makeList)
@@ -341,9 +341,9 @@ const fm = function () {
                 selected.splice(selected.indexOf(item), 1);
             }
         }
-    };
+    }
 
-    View.List.Item = class Item {
+    ListView.Item = class Item {
 
         constructor(data) {
             this.data = data;
@@ -567,21 +567,21 @@ const fm = function () {
         }
 
     };
-    View.List.Item.DIR = 'dir';
-    View.List.Item.FILE = 'file';
-    View.List.Item.TXT = 'text';
-    View.List.Item.CLIKE = 'clike';
-    View.List.Item.HTML = 'html';
-    View.List.Item.CSS = 'css';
-    View.List.Item.JAVASCRIPT = 'javascript';
-    View.List.Item.JSX = 'jsx';
-    View.List.Item.PHP = 'php';
-    View.List.Item.PYTHON = 'python';
-    View.List.Item.XML = 'xml';
-    View.List.Item.YAML = 'yaml';
-    View.List.Item.MARKDOWN = 'markdown';
+    ListView.Item.DIR = 'dir';
+    ListView.Item.FILE = 'file';
+    ListView.Item.TXT = 'text';
+    ListView.Item.CLIKE = 'clike';
+    ListView.Item.HTML = 'html';
+    ListView.Item.CSS = 'css';
+    ListView.Item.JAVASCRIPT = 'javascript';
+    ListView.Item.JSX = 'jsx';
+    ListView.Item.PHP = 'php';
+    ListView.Item.PYTHON = 'python';
+    ListView.Item.XML = 'xml';
+    ListView.Item.YAML = 'yaml';
+    ListView.Item.MARKDOWN = 'markdown';
 
-    View.DialogBox = class DialogBox {
+    class DialogBox {
 
         constructor() {
             this.root = null;
@@ -616,9 +616,9 @@ const fm = function () {
             });
         }
 
-    };
+    }
 
-    View.DirectoryBox = class DirectoryBox extends View.DialogBox {
+    class DirectoryBox extends DialogBox {
 
         constructor(node) {
             super();
@@ -681,9 +681,9 @@ const fm = function () {
             return super.input(() => this.selectedInput.val());
         }
 
-    };
+    }
 
-    View.NameBox = class NameBox extends View.DialogBox {
+    class NameBox extends DialogBox {
 
         constructor(node) {
             super();
@@ -715,9 +715,9 @@ const fm = function () {
         }
 
 
-    };
+    }
 
-    View.UploadBox = class UploadBox extends View.DialogBox {
+    class UploadBox extends DialogBox {
 
         constructor(node) {
             super();
@@ -760,19 +760,19 @@ const fm = function () {
         upload() {
             let list = this.list;
             for (let o of list) {
-                if (o.status === View.UploadBox.Item.SUCCESS || o.status === View.UploadBox.Item.UPLOADING) {
+                if (o.status === UploadBox.Item.SUCCESS || o.status === UploadBox.Item.UPLOADING) {
                     continue;
                 }
                 let handleSuccess = data => {
-                    o.setStatus(View.UploadBox.Item.SUCCESS);
+                    o.setStatus(UploadBox.Item.SUCCESS);
                     view.reload();
                 };
                 let handleFailed = data => {
-                    o.setStatus(View.UploadBox.Item.FAILED, data.error);
+                    o.setStatus(UploadBox.Item.FAILED, data.error);
                     view.reload();
                 };
 
-                o.setStatus(View.UploadBox.Item.UPLOADING);
+                o.setStatus(UploadBox.Item.UPLOADING);
                 Api.upload(fm.path, o.file)
                     .then(Api.filterError)
                     .then(handleSuccess)
@@ -803,25 +803,25 @@ const fm = function () {
         }
 
 
-    };
+    }
 
-    View.UploadBox.Item = class {
+    UploadBox.Item = class {
         constructor(file) {
             this.file = file;
-            this.status = View.UploadBox.Item.INIT;
+            this.status = UploadBox.Item.INIT;
         }
 
         setStatus(value, ...args) {
             this.status = value;
 
             let className, text = null;
-            if (value === View.UploadBox.Item.SUCCESS) {
+            if (value === UploadBox.Item.SUCCESS) {
                 className = 'success';
                 text = '上传成功';
-            } else if (value === View.UploadBox.Item.FAILED) {
+            } else if (value === UploadBox.Item.FAILED) {
                 className = 'failed';
                 text = args[0];
-            } else if (value === View.UploadBox.Item.UPLOADING) {
+            } else if (value === UploadBox.Item.UPLOADING) {
                 className = ' ';
                 text = '正在上传';
             }
@@ -833,12 +833,12 @@ const fm = function () {
         }
     };
 
-    View.UploadBox.Item.SUCCESS = 'Success';
-    View.UploadBox.Item.FAILED = 'Failed';
-    View.UploadBox.Item.INIT = 'Init';
-    View.UploadBox.Item.UPLOADING = 'Uploading';
+    UploadBox.Item.SUCCESS = 'Success';
+    UploadBox.Item.FAILED = 'Failed';
+    UploadBox.Item.INIT = 'Init';
+    UploadBox.Item.UPLOADING = 'Uploading';
 
-    View.EditBox = class EditBox extends View.DialogBox {
+    class EditBox extends DialogBox {
         constructor(node) {
             super();
             let root = this.root = $(`
@@ -917,7 +917,7 @@ const fm = function () {
         }
 
         static typeOf(type) {
-            let Item = View.List.Item;
+            let Item = ListView.Item;
             let types = {};
             types[Item.TXT] = {MIME: 'text/plain'};
             types[Item.MARKDOWN] = {MIME: 'text/x-markdown', script: 'markdown.js',};
@@ -949,7 +949,7 @@ const fm = function () {
 
         input() {
         }
-    };
+    }
 
 
     class FileManager {
@@ -967,10 +967,10 @@ const fm = function () {
             this.page = page;
 
             if (page === 'login') {
-                (view = new View.Login(this.layout)).render();
+                (view = new LoginView(this.layout)).render();
             }
             if (page === 'index') {
-                (view = new View.List(this.layout)).render();
+                (view = new ListView(this.layout)).render();
             }
             history.pushState({}, '', '.');
         }
