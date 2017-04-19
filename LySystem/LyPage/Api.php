@@ -193,6 +193,50 @@ class Api
         fclose($fp);
     }
 
+    function resize_image()
+    {
+        $path = get_core('LyGet')->get('path');
+        $max_width = get_core('LyGet')->get('max_width');
+        if (empty($max_width) || $max_width > 10000) {
+            $max_width = 1000;
+        }
+        $max_height = get_core('LyGet')->get('max_height');
+        if (empty($max_height) || $max_height > 10000) {
+            $max_height = 1000;
+        }
+        if (!file_exists($path)) {
+            header('HTTP/1.1 415 Unsupported Media Type');
+            return;
+        }
+        $info = pathinfo($path);
+        switch ($info['extension']) {
+            case 'png':
+                $im = imagecreatefrompng($path);
+                $header = 'Content-Type: image/png';
+                break;
+            case 'jpg':
+            default:
+                $im = imagecreatefromjpeg($path);
+                $header = 'Content-Type: image/jpeg';
+        }
+        if (!isset($im)) {
+            header('HTTP/1.1 415 Unsupported Media Type');
+            return;
+        }
+        $image = $this->file_lib->resize_image($im, $max_width, $max_height);
+        header($header);
+        switch ($info['extension']) {
+            case 'png':
+                imagepng($image);
+                break;
+            case 'jpg':
+            default:
+                imagejpeg($image);
+        }
+
+    }
+
+
     public function get_ajax_media()
     {
         //获取一个能够展示的html5多媒体页面

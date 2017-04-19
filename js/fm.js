@@ -979,7 +979,6 @@ const fm = function () {
         }
 
         loadMode(type) {
-            console.log(type); // TODO delete it
             if (type && type.cmScript && !this.scripts.includes(type.cmScript)) {
                 if (type.cmDependencies) {
                     type.cmDependencies.forEach(this.loadMode.bind(this));
@@ -1048,5 +1047,4 @@ const fm = function () {
 
     return new FileManager();
 
-}
-();
+}();

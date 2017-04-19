@@ -102,6 +102,11 @@
             'param' => 'path',
         ),
         array(
+            'name' => '以指定大小获取一张图片',
+            'url' => 'Api/resize_image',
+            'param' => 'path,max_width=2000,max_height=2000',
+        ),
+        array(
             'name' => '获取一个能够展示的html5多媒体页面,音频和视频',
             'url' => 'Api/get_ajax_media',
             'param' => 'path,type',
