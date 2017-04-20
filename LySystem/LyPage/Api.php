@@ -196,13 +196,16 @@ class Api
     function resize_image()
     {
         $path = get_core('LyGet')->get('path');
-        $max_width = get_core('LyGet')->get('max_width');
-        if (empty($max_width) || $max_width > 10000) {
-            $max_width = 1000;
+        $width = get_core('LyGet')->get('width');
+        if (empty($width) || $width > 10000 || $width < 0) {
+            $width = 0;
         }
-        $max_height = get_core('LyGet')->get('max_height');
-        if (empty($max_height) || $max_height > 10000) {
-            $max_height = 1000;
+        $height = get_core('LyGet')->get('height');
+        if (empty($height) || $height > 10000 || $height < 0) {
+            $height = 0;
+        }
+        if (!$width && !$height) {
+            $width = 200;
         }
         if (!file_exists($path)) {
             header('HTTP/1.1 415 Unsupported Media Type');
@@ -223,7 +226,7 @@ class Api
             header('HTTP/1.1 415 Unsupported Media Type');
             return;
         }
-        $image = $this->file_lib->resize_image($im, $max_width, $max_height);
+        $image = $this->file_lib->resize_image($im, $width, $height);
         header($header);
         switch ($info['extension']) {
             case 'png':

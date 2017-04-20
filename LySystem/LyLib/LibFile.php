@@ -437,43 +437,40 @@ class LibFile
         return $rt;
     }
 
-    function resize_image($im, $max_width, $max_height)
+    function resize_image($im, $width, $height)
     {
         $pic_width = imagesx($im);
         $pic_height = imagesy($im);
-        if (($max_width && $pic_width > $max_width) || ($max_height && $pic_height > $max_height)) {
-            if ($max_width && $pic_width > $max_width) {
-                $width_ratio = $max_width / $pic_width;
-                $resize_width_tag = true;
-            }
-            if ($max_height && $pic_height > $max_height) {
-                $height_ratio = $max_height / $pic_height;
-                $resize_height_tag = true;
-            }
-            if ($resize_width_tag && $resize_height_tag) {
-
-                if ($width_ratio < $height_ratio)
-                    $ratio = $width_ratio;
-                else
-                    $ratio = $height_ratio;
-            }
-            if ($resize_width_tag && !$resize_height_tag)
-                $ratio = $width_ratio;
-            if ($resize_height_tag && !$resize_width_tag)
-                $ratio = $height_ratio;
-            $new_width = $pic_width * $ratio;
-            $new_height = $pic_height * $ratio;
-            if (function_exists("imagecopyresampled")) {
-                $new_im = imagecreatetruecolor($new_width, $new_height);
-                imagecopyresampled($new_im, $im, 0, 0, 0, 0, $new_width, $new_height, $pic_width, $pic_height);
-            } else {
-                $new_im = imagecreate($new_width, $new_height);
-                imagecopyresized($new_im, $im, 0, 0, 0, 0, $new_width, $new_height, $pic_width, $pic_height);
-            }
-            return $new_im;
-        } else {
-            return $im;
+        $resize_width_tag = false;
+        $resize_height_tag = false;
+        if ($width) {
+            $width_ratio = $width / $pic_width;
+            $resize_width_tag = true;
         }
+        if ($height) {
+            $height_ratio = $height / $pic_height;
+            $resize_height_tag = true;
+        }
+        if ($resize_width_tag && $resize_height_tag) {
+            if ($width_ratio < $height_ratio)
+                $ratio = $width_ratio;
+            else
+                $ratio = $height_ratio;
+        } else if ($resize_width_tag) {
+            $ratio = $width_ratio;
+        } else {
+            $ratio = $height_ratio;
+        }
+        $new_width = $pic_width * $ratio;
+        $new_height = $pic_height * $ratio;
+        if (function_exists("imagecopyresampled")) {
+            $new_im = imagecreatetruecolor($new_width, $new_height);
+            imagecopyresampled($new_im, $im, 0, 0, 0, 0, $new_width, $new_height, $pic_width, $pic_height);
+        } else {
+            $new_im = imagecreate($new_width, $new_height);
+            imagecopyresized($new_im, $im, 0, 0, 0, 0, $new_width, $new_height, $pic_width, $pic_height);
+        }
+        return $new_im;
     }
 
     private function location_parse($url, $location)
