@@ -67,6 +67,7 @@ const fm = function () {
         write: (path, content, charset = 'utf-8') => {
             return Api.post('Api/put_file', {path, content, char_set: charset})
         },
+
         upload: (path, file) => {
             let formData = new FormData();
             formData.append('path', path);
@@ -84,6 +85,10 @@ const fm = function () {
                     error: reject
                 });
             });
+        },
+
+        openMedia(path){
+            window.open('Api/get_media?path=' + path);
         },
 
         dirTree: (path = '') => {
@@ -387,6 +392,10 @@ const fm = function () {
                 return;
             }
 
+            if (this.isImage()) {
+                node.find('.icon').css({'background-image': `url('Api/resize_image?path=${this.path}&width=40')`})
+            }
+
             this.checkbox = node.find('input[type=checkbox]');
             node.click(this.select.bind(this));
 
@@ -456,9 +465,18 @@ const fm = function () {
             return this.type.isDirectory;
         }
 
+        isImage() {
+            if (this.type && this.type.MIME) {
+                return this.type.MIME.includes('image');
+            }
+            return false;
+        }
+
         click() {
             if (this.isDirectory()) {
                 view.loadPath(this.path);
+            } else if (this.isImage()) {
+                Api.openMedia(this.path);
             } else {
                 this.download();
             }
@@ -580,6 +598,10 @@ const fm = function () {
                 case 'md':
                 case 'markdown':
                     return FileType.MARKDOWN.clone();
+                case 'jpg':
+                    return FileType.JPEG.clone();
+                case 'png':
+                    return FileType.PNG.clone();
             }
             return new FileType({extension, actions: FileType.fileActions()});
 
@@ -607,6 +629,11 @@ const fm = function () {
         static fileActions() {
             return FileType.baseActions().concat(['download', 'edit']);
         }
+
+        static binActions() {
+            return FileType.baseActions().concat(['download']);
+        }
+
     }
 
     FileType.DIRECTORY = new FileType({
@@ -681,6 +708,18 @@ const fm = function () {
         MIME: 'text/x-cython',
         cmScript: 'python.js',
         actions: FileType.fileActions()
+    });
+    FileType.JPEG = new FileType({
+        type: 'jpeg',
+        extension: 'jpg',
+        MIME: 'image/jpeg',
+        actions: FileType.binActions()
+    });
+    FileType.PNG = new FileType({
+        type: 'png',
+        extension: 'png',
+        MIME: 'image/png',
+        actions: FileType.binActions()
     });
 
 

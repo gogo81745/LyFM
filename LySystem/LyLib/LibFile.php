@@ -465,6 +465,14 @@ class LibFile
         $new_height = $pic_height * $ratio;
         if (function_exists("imagecopyresampled")) {
             $new_im = imagecreatetruecolor($new_width, $new_height);
+
+            /**
+             *支持背景透明
+             */
+            $color = imagecolorallocate($new_im, 255, 255, 255);
+            imagecolortransparent($new_im, $color);
+            imagefill($new_im, 0, 0, $color);
+
             imagecopyresampled($new_im, $im, 0, 0, 0, 0, $new_width, $new_height, $pic_width, $pic_height);
         } else {
             $new_im = imagecreate($new_width, $new_height);
