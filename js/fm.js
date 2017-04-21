@@ -558,28 +558,28 @@ const fm = function () {
             let extension = data['exten'];
             switch (extension) {
                 case 'txt':
-                    return new FileType(FileType.TXT);
+                    return FileType.TXT.clone();
                 case 'html':
-                    return new FileType(FileType.HTML);
+                    return FileType.HTML.clone();
                 case 'css':
                 case 'less':
                 case 'scss':
-                    return new FileType(FileType.CSS);
+                    return FileType.CSS.clone();
                 case 'js':
                 case 'json':
-                    return new FileType(FileType.JAVASCRIPT);
+                    return FileType.JAVASCRIPT.clone();
                 case 'php':
-                    return new FileType(FileType.PHP);
+                    return FileType.PHP.clone();
                 case 'py':
-                    return new FileType(FileType.PYTHON);
+                    return FileType.PYTHON.clone();
                 case 'xml':
-                    return new FileType(FileType.XML);
+                    return FileType.XML.clone();
                 case 'yml':
                 case 'yaml':
-                    return new FileType(FileType.YAML);
+                    return FileType.YAML.clone();
                 case 'md':
                 case 'markdown':
-                    return new FileType(FileType.MARKDOWN);
+                    return FileType.MARKDOWN.clone();
             }
             return new FileType({extension, actions: FileType.fileActions()});
 
@@ -594,6 +594,10 @@ const fm = function () {
 
         is(other) {
             return this.type === other;
+        }
+
+        clone() {
+            return new FileType(this);
         }
 
         static baseActions() {
@@ -1039,7 +1043,7 @@ const fm = function () {
             if (page === 'index') {
                 (view = new ListView(this.layout)).render();
             }
-            history.pushState({}, '', '.');
+            //history.pushState({}, '', '.');
         }
 
 

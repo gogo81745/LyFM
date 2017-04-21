@@ -13,8 +13,12 @@ class LibFilter{
 			if(isset($url_list[0]) && in_array($url_list[0],array('Login','Help','About'))){
 				return true;
 			}
-			redirect(get_url('Login?redirect='.urlencode(NOW_URL)));
-			return false;
+            /**
+             * 验证失败不需要跳转，由前端决定登录页面显示
+             */
+            return true;
+			//redirect(get_url('Login?redirect='.urlencode(NOW_URL)));
+			//return false;
 		} 
 	}
 	public function LIB(){
